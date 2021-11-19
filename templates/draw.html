@@ -68,7 +68,9 @@
         ctx.stroke();
         ctx.closePath();
     }
-    
+    function erase() {
+        ctx.clearRect(0, 0, w, h);
+    }
   
     
     function findxy(res, e) {
@@ -113,7 +115,7 @@
         <div style="position:absolute;top:17%;left:74%;width:10px;height:10px;background:black;" id="black" onclick="color(this)"></div>
         <div style="position:absolute;top:20%;left:72%;">Eraser</div>
         <div style="position:absolute;top:22%;left:73%;width:15px;height:15px;background:white;border:2px solid;" id="white" onclick="color(this)"></div>
-        <img id="canvasimg" style="position:absolute;top:10%;left:52%;" style="display:none;">
+        <button onclick="erase()">Clear</button>
    
     </body>
     </html>
