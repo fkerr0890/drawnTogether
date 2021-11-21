@@ -1,6 +1,7 @@
 <html>
-    <script type="text/javascript">
-    var canvas, ctx, flag = false,
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+<script type="text/javascript">
+    var socket, canvas, ctx, flag = false,
         prevX = 0,
         currX = 0,
         prevY = 0,
@@ -11,6 +12,7 @@
         y = 2;
     
     function init() {
+        socket = io.connect('http://127.0.0.1:5000');
         canvas = document.getElementById('can');
         ctx = canvas.getContext("2d");
         w = canvas.width;
@@ -28,6 +30,12 @@
         canvas.addEventListener("mouseout", function (e) {
             findxy('out', e)
         }, false);
+
+        socket.on('message', function(msg) {
+            console.log("Received: " + msg)
+            const json_data = JSON.parse(msg);
+            draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
+        });
     }
     
     function color(obj) {
@@ -59,14 +67,18 @@
     
     }
     
-    function draw() {
+    function draw(x1,y1,x2,y2,received) {
         ctx.beginPath();
-        ctx.moveTo(prevX, prevY);
-        ctx.lineTo(currX, currY);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
         ctx.strokeStyle = x;
         ctx.lineWidth = y;
         ctx.stroke();
         ctx.closePath();
+        if (!received) {
+            const json_data = {x1: x1, y1: y1, x2: x2, y2: y2}
+            socket.send(JSON.stringify(json_data));
+        }
     }
     function erase() {
         ctx.clearRect(0, 0, w, h);
@@ -74,34 +86,34 @@
   
     
     function findxy(res, e) {
-        if (res == 'down') {
-            prevX = currX;
-            prevY = currY;
-            currX = e.clientX - canvas.offsetLeft;
-            currY = e.clientY - canvas.offsetTop;
-    
-            flag = true;
-            dot_flag = true;
-            if (dot_flag) {
-                ctx.beginPath();
-                ctx.fillStyle = x;
-                ctx.fillRect(currX, currY, 2, 2);
-                ctx.closePath();
-                dot_flag = false;
-            }
-        }
-        if (res == 'up' || res == "out") {
-            flag = false;
-        }
-        if (res == 'move') {
-            if (flag) {
+            if (res == 'down') {
                 prevX = currX;
                 prevY = currY;
                 currX = e.clientX - canvas.offsetLeft;
                 currY = e.clientY - canvas.offsetTop;
-                draw();
+
+                flag = true;
+                dot_flag = true;
+                if (dot_flag) {
+                    ctx.beginPath();
+                    ctx.fillStyle = x;
+                    ctx.fillRect(currX, currY, 2, 2);
+                    ctx.closePath();
+                    dot_flag = false;
+                }
             }
-        }
+            if (res == 'up' || res == "out") {
+                flag = false;
+            }
+            if (res == 'move') {
+                if (flag) {
+                    prevX = currX;
+                    prevY = currY;
+                    currX = e.clientX - canvas.offsetLeft;
+                    currY = e.clientY - canvas.offsetTop;
+                    draw(prevX, prevY, currX, currY, false);
+                }
+            }
     }
     </script>
     <body onload="init()">
