@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_socketio import SocketIO, send
 
 app = Flask(__name__)
@@ -9,6 +9,10 @@ socketio = SocketIO(app, cors_allowed_origins='*')
 def handleMessage(msg):
 	print('Message: ' + msg)
 	send(msg, broadcast=True)
+
+@app.route("/")
+def draw():
+	return render_template("draw.html")
 
 if __name__ == '__main__':
 	socketio.run(app)
