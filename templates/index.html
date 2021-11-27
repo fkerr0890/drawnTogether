@@ -5,20 +5,34 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 </head>
 <body>
+
+
+<input type="text" id="username">
+<button id="joinTeam">Join Room</button>
+<ul id="userList"></ul>
+
 <script type="text/javascript">
 $(document).ready(function() {
 
-	var socket = io.connect('http://127.0.0.1:5000');
+    var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
 
-	socket.on('connect', function() {
-		socket.send('User has connected!');
+    lobby_socket.on('connect', function() {
+		lobby_socket.send('User has connected!');
 	});
+
+    lobby_socket.on('message', function(msg) {
+        var li = document.createElement("li");
+        li.appendChild(document.createTextNode(msg));
+		document.getElementById('userList').appendChild(li)
+	});
+
+    $('#joinTeam').on('click', function (){
+        lobby_socket.emit('joinUsername', $('#username').val());
+        lobby_socket.send($('#username').val());
+        $('#username').val('')
+    });
 });
 </script>
-<ul id="messages"></ul>
-<input type="text" id="myMessage">
-<button id="sendbutton">Send</button>
-
 </body>
 
 </html>
