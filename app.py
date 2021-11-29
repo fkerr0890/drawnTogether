@@ -16,7 +16,7 @@ def handleMessage(msg):
 
 @app.route("/")
 def draw():
-    return render_template("draw.html")
+    return render_template("draw.html",users = users)
 
 
 @app.route('/lobby')
