@@ -34,6 +34,7 @@
         socket.on('message', function(msg) {
             const json_data = JSON.parse(msg);
             x = json_data.color;
+            y = json_data.lineWidth
             draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
         });
     }
@@ -47,7 +48,7 @@
         ctx.stroke();
         ctx.closePath();
         if (!received) {
-            const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x}
+            const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth:y}
             socket.send(JSON.stringify(json_data));
         }
     }
@@ -107,15 +108,21 @@
         </label>
         <div id = "team1">
             Team 1<div class="team">
-                {%for user in users%}
-                    {{user}}
+                <ul>
+                {%for user in team1%}
+                    <li>{{user}}</li>
                 {%endfor%}
+            </ul>
             </div>
         </div>
         <div id = team2>
-            Team 2<div class="team">{%for user in users%}
-                {{user.username}}
-            {%endfor%}</div>
+            Team 2<div class="team">
+                <ul>
+                    {%for user in team2%}
+                        <li>{{user}}</li>
+                    {%endfor%}
+                </ul>
+            </div>
         </div>
     </body>
     <style>
@@ -149,6 +156,7 @@
             top:200px;
             left:1000px;
             border:2px solid;
+            font-family: cursive;
         }
         #team2{
             background-color:darkgreen;
@@ -162,6 +170,9 @@
             height: 150px;
             background-color:rgb(125, 173, 40);
             border:2px solid;
+        }
+        ul,li{
+            background-color:rgb(125, 173, 40);
         }
         #enter{
             position:fixed;
