@@ -88,20 +88,86 @@
     }
     </script>
     <body onload="init()">
-        <canvas id="can" width="800" height="500" style="position:absolute;top:10%;left:10%;border:2px solid;"></canvas>
+        <h1 style="font-family:Brush Script MT, Brush Script Std, cursive;">DrawnTogether</h1>
+        <canvas id="can" width="800" height="500" ></canvas>
         <div style="position:absolute;top:12%;left:70%;">Choose Color</div>
-        <div style="position:absolute;top:15%;left:72%;width:10px;height:10px;background:green;" id="green" onclick="x='green'; y=2"></div>
-        <div style="position:absolute;top:15%;left:73%;width:10px;height:10px;background:blue;" id="blue" onclick="x='blue'; y=2"></div>
-        <div style="position:absolute;top:15%;left:74%;width:10px;height:10px;background:red;" id="red" onclick="x='red'; y=2"></div>
-        <div style="position:absolute;top:17%;left:72%;width:10px;height:10px;background:yellow;" id="yellow" onclick="x='yellow'; y=2"></div>
-        <div style="position:absolute;top:17%;left:73%;width:10px;height:10px;background:orange;" id="orange" onclick="x='orange'; y=2"></div>
-        <div style="position:absolute;top:17%;left:74%;width:10px;height:10px;background:black;" id="black" onclick="x='black'; y=2"></div>
+        <div style="position:absolute;top:15%;left:72%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
+        <div style="position:absolute;top:15%;left:73%;width:10px;height:10px;background:blue;border:1px solid;" id="blue" onclick="x='blue'; y=2"></div>
+        <div style="position:absolute;top:15%;left:74%;width:10px;height:10px;background:red;border:1px solid;" id="red" onclick="x='red'; y=2"></div>
+        <div style="position:absolute;top:17%;left:72%;width:10px;height:10px;background:yellow;border:1px solid;" id="yellow" onclick="x='yellow'; y=2"></div>
+        <div style="position:absolute;top:17%;left:73%;width:10px;height:10px;background:orange;border:1px solid;" id="orange" onclick="x='orange'; y=2"></div>
+        <div style="position:absolute;top:17%;left:74%;width:10px;height:10px;background:black;border:1px solid;" id="black" onclick="x='black'; y=2"></div>
         <div style="position:absolute;top:20%;left:72%;">Eraser</div>
         <div style="position:absolute;top:22%;left:73%;width:15px;height:15px;background:white;border:2px solid;" id="white" onclick="x='white'; y=14"></div>
-        <button onclick="erase()">Clear</button>
+        <button id= "erase" onclick="erase()">Clear</button>
         <label>
             Guess:
             <input type="text" name="guess_input">
+            <button id="enter">Enter</button>
         </label>
+        <div id = "team1">
+            Team 1<div class="team">
+                {%for user in users%}
+                    {{user}}
+                {%endfor%}
+            </div>
+        </div>
+        <div id = team2>
+            Team 2<div class="team">{%for user in users%}
+                {{user.username}}
+            {%endfor%}</div>
+        </div>
     </body>
+    <style>
+        *{
+            background-color: aqua;
+        }
+        #can{
+            background-color: white;
+            position:fixed;
+            top:75px;
+            left:130px;
+            border:2px solid;
+        }
+        input,button{
+            background-color: white;
+        }
+        input{
+            position:fixed;
+            top:600px;
+            left:700px;
+            border:2px solid;
+        }
+        label{
+            position:fixed;
+            top:600px;
+            left:650px;
+        }
+        #team1{
+            background-color: darkgreen;
+            position:fixed;
+            top:200px;
+            left:1000px;
+            border:2px solid;
+        }
+        #team2{
+            background-color:darkgreen;
+            position:fixed;
+            top:400px;
+            left:1000px;
+            border:2px solid;
+        }
+        .team{
+            width: 200px;
+            height: 150px;
+            background-color:rgb(125, 173, 40);
+            border:2px solid;
+        }
+        #enter{
+            position:fixed;
+            top:600px;
+            left:900px;
+        }
+
+    </style>
     </html>
