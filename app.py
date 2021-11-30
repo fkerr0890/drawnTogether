@@ -16,12 +16,12 @@ def handleMessage(msg):
     send(msg, broadcast=True)
 
 
-@app.route("/")
-def draw():
+@app.route("/play")
+def play():
     return render_template("draw.html", team1=team1, team2=team2)
 
 
-@app.route('/lobby')
+@app.route('/')
 def lobby():
     return render_template("index.html")
 

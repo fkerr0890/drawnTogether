@@ -1,42 +1,43 @@
 <html>
 <head>
-<title>Chat Room</title>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <title>Lobby</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 </head>
 <body>
 
-<h1>Drawn Together</h1>
-<input type="text" id="username">
-<button id="joinTeam">Join Room</button>
-<ul id="userList1">Team 1</ul>
-<ul id="userList2">Team 2</ul>
+    <h1>Drawn Together</h1>
+    <input type="text" id="username">
+    <button id="joinTeam">Join Room</button><br>
+    <form action = "{{url_for('play')}}"><button type="submit">Play Game</button></form>
+    <ul id="userList1">Team 1</ul>
+    <ul id="userList2">Team 2</ul>
 
-<script type="text/javascript">
-$(document).ready(function() {
+    <script type="text/javascript">
+        $(document).ready(function() {
 
-    var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
+            var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
 
-    lobby_socket.on('connect', function() {
-		lobby_socket.send('User has connected!');
-	});
+            lobby_socket.on('connect', function() {
+                lobby_socket.send('User has connected!');
+            });
 
-    lobby_socket.on('message', function(msg) {
-        var li = document.createElement("li");
-        li.appendChild(document.createTextNode(msg));
-		document.getElementById('userList1').appendChild(li)
-	});
+            lobby_socket.on('message', function(msg) {
+                var li = document.createElement("li");
+                li.appendChild(document.createTextNode(msg));
+                document.getElementById('userList1').appendChild(li)
+            });
 
-    $('#joinTeam').on('click', function (){
-        lobby_socket.emit('joinUsername', $('#username').val());
-        lobby_socket.send($('#username').val());
-        $('#username').val('')
-    });
-});
-</script>
+            $('#joinTeam').on('click', function (){
+                lobby_socket.emit('joinUsername', $('#username').val());
+                lobby_socket.send($('#username').val());
+                $('#username').val('')
+            });
+        });
+    </script>
 </body>
 <style>
-    
+
     input,button{
         background-color: white;
     }
@@ -54,7 +55,7 @@ $(document).ready(function() {
         background-color: darkolivegreen;
     }
     #userList1{
-        margin: auto;   
+        margin: auto;
         position: fixed;
         top: 200px;
         left: 300px;
@@ -62,8 +63,8 @@ $(document).ready(function() {
         height: 250px;
         border:2px solid;
     }
-    #userList2{ 
-        margin: auto;   
+    #userList2{
+        margin: auto;
         position: fixed;
         top: 200px;
         left: 700px;
@@ -81,16 +82,16 @@ $(document).ready(function() {
     body{
         /* background-image: url("paper.jpg"); */
         position: absolute;
-  display: flex;
-    width: 75%;
-  min-height: calc((1vw + 1vh) * 75);
-  /* center page with absolute position */
-  top: 0%; left: 50%; transform: translate(-50%, 0);
-  margin: 2em 0;
-    padding: 4em;
-    box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
-    background: white;
-  filter: url(#wavy2);
+        display: flex;
+        width: 75%;
+        min-height: calc((1vw + 1vh) * 75);
+        /* center page with absolute position */
+        top: 0%; left: 50%; transform: translate(-50%, 0);
+        margin: 2em 0;
+        padding: 4em;
+        box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
+        background: white;
+        filter: url(#wavy2);
     }
 </style>
 
