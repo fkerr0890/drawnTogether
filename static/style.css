@@ -1,0 +1,108 @@
+body{
+    /* background-image: url("paper.jpg"); */
+    position: absolute;
+    display: flex;
+    width: 75%;
+    min-height: 90%;
+    /* center page with absolute position */
+    top: 0%; left: 50%; transform: translate(-50%, 0);
+    margin: 2em 0;
+    padding: 4em;
+    box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
+    background: white;
+    filter: url(#wavy2);
+}
+#can{
+    background-color: white;
+    /* position:fixed;
+    top:75px;
+    left:130px; */
+    border:2px solid;
+}
+input,button{
+    background-color: white;
+}
+#answer{
+    position:fixed;
+    top:600px;
+    left:700px;
+    border:2px solid;
+}
+#labeldraw{
+    position:fixed;
+    top:600px;
+    left:650px;
+}
+#team1{
+    background-color: darkgreen;
+    position:fixed;
+    top:200px;
+    left:1000px;
+    border:2px solid;
+    font-family: cursive;
+}
+#team2{
+    background-color:darkgreen;
+    position:fixed;
+    top:400px;
+    left:1000px;
+    border:2px solid;
+}
+.team{
+    width: 200px;
+    height: 150px;
+    background-color:rgb(125, 173, 40);
+    border:2px solid;
+}
+ul,li{
+    background-color:rgb(125, 173, 40);
+}
+#enter{
+    position:fixed;
+    top:600px;
+    left:900px;
+}
+#username,#joinTeam{
+    background-color: white;
+}
+#username{
+    position: fixed;
+    top: 500px;
+    left: 500px;
+}
+#joinTeam{
+    position: fixed;
+    top: 500px;
+    left: 700px;
+}
+#userList1{
+    margin: auto;   
+    position: fixed;
+    top: 200px;
+    left: 300px;
+    width: 250px;
+    height: 250px;
+    border:2px solid;
+}
+#userList2{ 
+    margin: auto;   
+    position: fixed;
+    top: 200px;
+    left: 700px;
+    width: 250px;
+    height: 250px;
+    border:2px solid;
+}
+#lobby{
+    position: fixed;
+    top: 0px;
+    left: 400px;
+    font-size: 100px;;
+    font-family: Brush Script MT, Brush Script Std, cursive;
+}
+
+#erase{
+    position: fixed;
+    top: 75px;
+    left: 75px;
+}

@@ -1,17 +1,17 @@
 <html>
 <head>
-    <title>Lobby</title>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<title>Lobby</title>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="main.css"/>
 </head>
 <body>
 
-    <h1>Drawn Together</h1>
-    <input type="text" id="username">
-    <button id="joinTeam">Join Room</button><br>
-    <form action = "{{url_for('play')}}"><button type="submit">Play Game</button></form>
-    <ul id="userList1">Team 1</ul>
-    <ul id="userList2">Team 2</ul>
+<h1 id="lobby">Drawn Together</h1>
+<input type="text" id="username">
+<button id="joinTeam">Join Room</button>
+<ul id="userList1">Team 1</ul>
+<ul id="userList2">Team 2</ul>
 
     <script type="text/javascript">
         $(document).ready(function() {
@@ -36,63 +36,6 @@
         });
     </script>
 </body>
-<style>
 
-    input,button{
-        background-color: white;
-    }
-    input{
-        position: fixed;
-        top: 500px;
-        left: 500px;
-    }
-    button{
-        position: fixed;
-        top: 500px;
-        left: 700px;
-    }
-    ul,li{
-        background-color: darkolivegreen;
-    }
-    #userList1{
-        margin: auto;
-        position: fixed;
-        top: 200px;
-        left: 300px;
-        width: 250px;
-        height: 250px;
-        border:2px solid;
-    }
-    #userList2{
-        margin: auto;
-        position: fixed;
-        top: 200px;
-        left: 700px;
-        width: 250px;
-        height: 250px;
-        border:2px solid;
-    }
-    h1{
-        position: fixed;
-        top: 0px;
-        left: 400px;
-        font-size: 100px;;
-        font-family: Brush Script MT, Brush Script Std, cursive;
-    }
-    body{
-        /* background-image: url("paper.jpg"); */
-        position: absolute;
-        display: flex;
-        width: 75%;
-        min-height: calc((1vw + 1vh) * 75);
-        /* center page with absolute position */
-        top: 0%; left: 50%; transform: translate(-50%, 0);
-        margin: 2em 0;
-        padding: 4em;
-        box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
-        background: white;
-        filter: url(#wavy2);
-    }
-</style>
 
 </html>
