@@ -1,8 +1,22 @@
+body{
+    /* background-image: url("paper.jpg"); */
+    position: absolute;
+    display: flex;
+    width: 75%;
+    min-height: 90%;
+    /* center page with absolute position */
+    top: 0%; left: 50%; transform: translate(-50%, 0);
+    margin: 2em 0;
+    padding: 4em;
+    box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
+    background: white;
+    filter: url(#wavy2);
+}
 #can{
     background-color: white;
-    position:fixed;
+    /* position:fixed;
     top:75px;
-    left:130px;
+    left:130px; */
     border:2px solid;
 }
 input,button{
@@ -86,17 +100,9 @@ ul,li{
     font-size: 100px;;
     font-family: Brush Script MT, Brush Script Std, cursive;
 }
-#lobbybody{
-    /* background-image: url("paper.jpg"); */
-    position: absolute;
-    display: flex;
-    width: 75%;
-    min-height: calc((1vw + 1vh) * 75);
-    /* center page with absolute position */
-    top: 0%; left: 50%; transform: translate(-50%, 0);
-    margin: 2em 0;
-    padding: 4em;
-    box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
-    background: white;
-    filter: url(#wavy2);
+
+#erase{
+    position: fixed;
+    top: 75px;
+    left: 75px;
 }
