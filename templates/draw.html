@@ -1,4 +1,6 @@
 <html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
 <script type="text/javascript">
     var socket, canvas, ctx, flag = false,
@@ -88,8 +90,9 @@
             }
     }
     </script>
+    </head>
     <body onload="init()">
-        <h1 style="font-family:Brush Script MT, Brush Script Std, cursive;">DrawnTogether</h1>
+        <h1 id="drawH"style="font-family:Lucida Calligraphy;">DrawnTogether</h1>
         <canvas id="can" width="800" height="500" ></canvas>
         <div style="position:absolute;top:12%;left:70%;">Choose Color</div>
         <div style="position:absolute;top:15%;left:72%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
@@ -99,13 +102,16 @@
         <div style="position:absolute;top:17%;left:73%;width:10px;height:10px;background:orange;border:1px solid;" id="orange" onclick="x='orange'; y=2"></div>
         <div style="position:absolute;top:17%;left:74%;width:10px;height:10px;background:black;border:1px solid;" id="black" onclick="x='black'; y=2"></div>
         <div style="position:absolute;top:20%;left:72%;">Eraser</div>
-        <div style="position:absolute;top:22%;left:73%;width:15px;height:15px;background:white;border:2px solid;" id="white" onclick="x='white'; y=14"></div>
+        <div style="position:absolute;top:22%;left:73%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=14"></div>
         <button id= "erase" onclick="erase()">Clear</button>
-        <label>
+        <label id="labeldraw">
             Guess:
-            <input type="text" name="guess_input">
+            <input id="answer" type="text" name="guess_input">
             <button id="enter">Enter</button>
         </label>
+        <!-- <img id="size2" src="size2.png" onclick="y=2">
+        <img id="size4" src="size4.png" onclick="y=4">
+        <img id="size6" src="size6.png" onclick="y=6"> -->
         <div id = "team1">
             Team 1<div class="team">
                 <ul>
@@ -125,60 +131,4 @@
             </div>
         </div>
     </body>
-    <style>
-        *{
-            background-color: aqua;
-        }
-        #can{
-            background-color: white;
-            position:fixed;
-            top:75px;
-            left:130px;
-            border:2px solid;
-        }
-        input,button{
-            background-color: white;
-        }
-        input{
-            position:fixed;
-            top:600px;
-            left:700px;
-            border:2px solid;
-        }
-        label{
-            position:fixed;
-            top:600px;
-            left:650px;
-        }
-        #team1{
-            background-color: darkgreen;
-            position:fixed;
-            top:200px;
-            left:1000px;
-            border:2px solid;
-            font-family: cursive;
-        }
-        #team2{
-            background-color:darkgreen;
-            position:fixed;
-            top:400px;
-            left:1000px;
-            border:2px solid;
-        }
-        .team{
-            width: 200px;
-            height: 150px;
-            background-color:rgb(125, 173, 40);
-            border:2px solid;
-        }
-        ul,li{
-            background-color:rgb(125, 173, 40);
-        }
-        #enter{
-            position:fixed;
-            top:600px;
-            left:900px;
-        }
-
-    </style>
     </html>
