@@ -91,43 +91,45 @@
     }
     </script>
     </head>
-    <body onload="init()">
-        <h1 id="drawH"style="font-family:Lucida Calligraphy;">DrawnTogether</h1>
-        <canvas id="can" width="800" height="500" ></canvas>
-        <div style="position:absolute;top:12%;left:70%;">Choose Color</div>
-        <div style="position:absolute;top:15%;left:72%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
-        <div style="position:absolute;top:15%;left:73%;width:10px;height:10px;background:blue;border:1px solid;" id="blue" onclick="x='blue'; y=2"></div>
-        <div style="position:absolute;top:15%;left:74%;width:10px;height:10px;background:red;border:1px solid;" id="red" onclick="x='red'; y=2"></div>
-        <div style="position:absolute;top:17%;left:72%;width:10px;height:10px;background:yellow;border:1px solid;" id="yellow" onclick="x='yellow'; y=2"></div>
-        <div style="position:absolute;top:17%;left:73%;width:10px;height:10px;background:orange;border:1px solid;" id="orange" onclick="x='orange'; y=2"></div>
-        <div style="position:absolute;top:17%;left:74%;width:10px;height:10px;background:black;border:1px solid;" id="black" onclick="x='black'; y=2"></div>
-        <div style="position:absolute;top:20%;left:72%;">Eraser</div>
-        <div style="position:absolute;top:22%;left:73%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=14"></div>
-        <button id= "erase" onclick="erase()">Clear</button>
-        <label id="labeldraw">
-            Guess:
-            <input id="answer" type="text" name="guess_input">
-            <button id="enter">Enter</button>
-        </label>
-        <!-- <img id="size2" src="size2.png" onclick="y=2">
-        <img id="size4" src="size4.png" onclick="y=4">
-        <img id="size6" src="size6.png" onclick="y=6"> -->
-        <div id = "team1">
-            Team 1<div class="team">
-                <ul>
-                {%for user in team1%}
-                    <li>{{user}}</li>
-                {%endfor%}
-            </ul>
-            </div>
-        </div>
-        <div id = team2>
-            Team 2<div class="team">
-                <ul>
-                    {%for user in team2%}
+    <body id="drawBody" onload="init()">
+        <div class="container2">
+            <h1 id="title">Drawn Together</h1>
+            <canvas id="can" width="800" height="500" ></canvas>
+            <div style="position:absolute;top:12%;left:85%;">Choose Color</div>
+            <div style="position:absolute;top:15%;left:87%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
+            <div style="position:absolute;top:15%;left:88%;width:10px;height:10px;background:blue;border:1px solid;" id="blue" onclick="x='blue'; y=2"></div>
+            <div style="position:absolute;top:15%;left:89%;width:10px;height:10px;background:red;border:1px solid;" id="red" onclick="x='red'; y=2"></div>
+            <div style="position:absolute;top:17%;left:87%;width:10px;height:10px;background:yellow;border:1px solid;" id="yellow" onclick="x='yellow'; y=2"></div>
+            <div style="position:absolute;top:17%;left:88%;width:10px;height:10px;background:orange;border:1px solid;" id="orange" onclick="x='orange'; y=2"></div>
+            <div style="position:absolute;top:17%;left:89%;width:10px;height:10px;background:black;border:1px solid;" id="black" onclick="x='black'; y=2"></div>
+            <div style="position:absolute;top:20%;left:87%;">Eraser</div>
+            <div style="position:absolute;top:23%;left:88%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=14"></div>
+            <button id= "erase" onclick="erase()">Clear</button>
+            <label id="labeldraw">
+                Guess:
+                <input id="answer" type="text" name="guess_input">
+                <button id="enter">Enter</button>
+            </label>
+            <!-- <img id="size2" src="size2.png" onclick="y=2">
+            <img id="size4" src="size4.png" onclick="y=4">
+            <img id="size6" src="size6.png" onclick="y=6"> -->
+            <div id = "team1">
+                Team 1<div class="team">
+                    <ul>
+                    {%for user in team1%}
                         <li>{{user}}</li>
                     {%endfor%}
                 </ul>
+                </div>
+            </div>
+            <div id = team2>
+                Team 2<div class="team">
+                    <ul>
+                        {%for user in team2%}
+                            <li>{{user}}</li>
+                        {%endfor%}
+                    </ul>
+                </div>
             </div>
         </div>
     </body>

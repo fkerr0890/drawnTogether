@@ -1,52 +1,111 @@
-body{
-    /* background-image: url("paper.jpg"); */
+#lobbybody{
     position: absolute;
     display: flex;
     width: 75%;
     min-height: 90%;
-    /* center page with absolute position */
     top: 0%; left: 50%; transform: translate(-50%, 0);
     margin: 2em 0;
     padding: 4em;
+    justify-content: center;
     box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
-    background: white;
+    background: rgb(255, 255, 255);
     filter: url(#wavy2);
+}
+.container{
+    display: grid;
+    grid-template-columns: 350px 200px 250px 250px 300px;
+    grid-template-rows: 300px 300px 20px; 
+}
+#username,#joinTeam{
+    background-color: white;
+}
+#username{
+    grid-column:2;
+    grid-row: 3;
+    width: 150px;
+
+}
+#joinTeam{
+    grid-column: 3;
+    grid-row: 3;
+    width: 100px;
+}
+#userList1{
+   
+    width: 250px;
+    height: 250px;
+    grid-column: 2;
+    grid-row: 2;
+    border:2px solid;
+}
+#userList2{ 
+    
+    width: 250px;
+    height: 250px; 
+    grid-column: 4;
+    grid-row: 2;
+    border:2px solid;
+}
+#lobby{
+    
+    font-size: 100px; 
+    grid-column: 3/5;
+    grid-row: 1;
+    font-family: Brush Script MT, Brush Script Std, cursive;
+}
+#drawBody{
+    display: flex;
+    width: 99%;
+    height: 97%;
+    box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
+    background: rgb(255, 255, 255);
+    filter: url(#wavy2);
+}
+.container2{
+    display: grid;
+    grid-template-columns: 50px 800px 250px;
+    grid-template-rows:  35px 450px 20px; 
+    gap: 30px;
 }
 #can{
     background-color: white;
-    /* position:fixed;
-    top:75px;
-    left:130px; */
+    grid-row: 2;
+    grid-column: 2;
     border:2px solid;
 }
-input,button{
-    background-color: white;
-}
+
 #answer{
-    position:fixed;
-    top:600px;
-    left:700px;
+    
     border:2px solid;
+    grid-row: 3;
+    grid-column: 1;
 }
 #labeldraw{
-    position:fixed;
-    top:600px;
-    left:650px;
+    
+    grid-row: 3;
+    grid-column: 3;
 }
 #team1{
     background-color: darkgreen;
-    position:fixed;
-    top:200px;
-    left:1000px;
+    
+    grid-column: 3;
+    grid-row: 2;
     border:2px solid;
+    width: 202px;
+    height: 175px;
     font-family: cursive;
 }
 #team2{
     background-color:darkgreen;
-    position:fixed;
-    top:400px;
-    left:1000px;
+    
+    grid-column: 3;
+    grid-row: 2;
+    width: 202px;
+    height: 175px;
+    align-self: flex-end;
+    
     border:2px solid;
+    font-family: cursive;
 }
 .team{
     width: 200px;
@@ -54,55 +113,19 @@ input,button{
     background-color:rgb(125, 173, 40);
     border:2px solid;
 }
-ul,li{
-    background-color:rgb(125, 173, 40);
-}
-#enter{
-    position:fixed;
-    top:600px;
-    left:900px;
-}
-#username,#joinTeam{
-    background-color: white;
-}
-#username{
-    position: fixed;
-    top: 500px;
-    left: 500px;
-}
-#joinTeam{
-    position: fixed;
-    top: 500px;
-    left: 700px;
-}
-#userList1{
-    margin: auto;   
-    position: fixed;
-    top: 200px;
-    left: 300px;
-    width: 250px;
-    height: 250px;
-    border:2px solid;
-}
-#userList2{ 
-    margin: auto;   
-    position: fixed;
-    top: 200px;
-    left: 700px;
-    width: 250px;
-    height: 250px;
-    border:2px solid;
-}
-#lobby{
-    position: fixed;
-    top: 0px;
-    left: 400px;
-    font-size: 100px;;
+
+#title{
+    margin-left: 1em;
     font-family: Brush Script MT, Brush Script Std, cursive;
+    grid-row: 1;
+    grid-column: 1/3;
 }
 
 #erase{
-    position: fixed;
-    top: 75px;
-    left: 75px;
+    width: 50px;
+    height: 20px;
+    grid-row: 2;
+    grid-column: 1;
+    margin-left: 1em; 
+    
 }

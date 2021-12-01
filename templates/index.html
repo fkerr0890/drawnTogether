@@ -5,13 +5,15 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-
-<h1 id="lobby">Drawn Together</h1>
-<input type="text" id="username">
-<button id="joinTeam">Join Room</button>
-<ul id="userList1">Team 1</ul>
-<ul id="userList2">Team 2</ul>
+<body id="lobbybody">
+<div class="container">
+    <h1 id="lobby">Drawn Together</h1>
+    <ul id="userList1">Team 1</ul>
+    <ul id="userList2">Team 2</ul>
+    <input type="text" id="username">
+    <button id="joinTeam">Join Room</button>
+    <a href='/play'><button id="startGame">Start Game</button></a>
+</div>
 
     <script type="text/javascript">
         $(document).ready(function() {
