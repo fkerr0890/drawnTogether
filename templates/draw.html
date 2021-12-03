@@ -94,6 +94,7 @@
     <body id="drawBody" onload="init()">
         <div class="container2">
             <h1 id="title">Drawn Together</h1>
+            <h2 id="role">You are the</h2>
             <canvas id="can" width="800" height="500" ></canvas>
             <div style="position:absolute;top:12%;left:87%;">Choose Color</div>
             <div style="position:absolute;top:15%;left:87%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
@@ -103,18 +104,19 @@
             <div style="position:absolute;top:18%;left:89%;width:10px;height:10px;background:orange;border:1px solid;" id="orange" onclick="x='orange'; y=2"></div>
             <div style="position:absolute;top:18%;left:91%;width:10px;height:10px;background:black;border:1px solid;" id="black" onclick="x='black'; y=2"></div>
             <div style="position:absolute;top:20%;left:88%;">Eraser</div>
-            <div style="position:absolute;top:23%;left:89%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=14"></div>
+            <div style="position:absolute;top:23%;left:89%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=28"></div>
             <button id= "erase" onclick="erase()">Clear</button>
             <label id="labeldraw">
                 Guess:
                 <input id="answer" type="text" name="guess_input">
-                <button id="enter">Enter</button>
             </label>
-            <!-- <img id="size2" src="size2.png" onclick="y=2">
-            <img id="size4" src="size4.png" onclick="y=4">
-            <img id="size6" src="size6.png" onclick="y=6"> -->
+            <button id="enter">Enter</button>
             <div id = "team1">
-                Team 1<div class="team">
+                Team 1 
+                <div id="score1">Score:
+                    <div id="numberone">0</div>
+                </div>
+                <div class="team">
                     <ul>
                     {%for user in team1%}
                         <li>{{user}}</li>
@@ -123,7 +125,12 @@
                 </div>
             </div>
             <div id = team2>
-                Team 2<div class="team">
+                Team 2
+                <div id="score2">Score:
+                    <div id="numbertwo">0</div>
+                </div>
+                <div class="team">
+                    
                     <ul>
                         {%for user in team2%}
                             <li>{{user}}</li>
