@@ -12,17 +12,18 @@
     <ul id="userList2">Team 2</ul>
     <input type="text" id="username">
     <button id="joinTeam">Join Room</button>
-    <a id="startGame" href='/play'><button id="startGame">Start Game</button></a>
+    <a id="startGame"><button>Start Game</button></a>
 </div>
 
     <script type="text/javascript">
         $(document).ready(function() {
 
             var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
+            let user;
 
-            lobby_socket.on('connect', function() {
+/*            lobby_socket.on('connect', function() {
                 lobby_socket.send('User has connected!');
-            });
+            });*/
 
             lobby_socket.on('message', function(msg) {
                 var li = document.createElement("li");
@@ -41,9 +42,11 @@
             });
 
             $('#joinTeam').on('click', function (){
-                lobby_socket.emit('joinUsername', $('#username').val());
-                lobby_socket.send($('#username').val());
-                $('#username').val('')
+                let username = $('#username');
+                lobby_socket.emit('joinUsername', username.val());
+                user = username.val();
+                $('#startGame').attr('href','/play/'+user)
+                username.val('');
             });
         });
     </script>
