@@ -38,6 +38,9 @@
             x = json_data.color;
             y = json_data.lineWidth
             draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
+            var fiveMinutes = 60 * 5,
+            display = document.querySelector('#time');
+            startTimer(fiveMinutes, display);
         });
     }
     
@@ -89,6 +92,23 @@
                 }
             }
     }
+    
+    function startTimer(duration, display) {
+        var timer = duration, seconds;
+        setInterval(function () {
+            
+            seconds = parseInt(timer % 60, 10);
+
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = seconds;
+
+            // if (--timer < 0) {
+            //     timer = duration;
+            // }
+        }, 1000);
+    }
+
     </script>
     </head>
     <body id="drawBody" onload="init()">
@@ -111,6 +131,7 @@
                 <input id="answer" type="text" name="guess_input">
             </label>
             <button id="enter">Enter</button>
+            <div>The Round ends in <span id="time">0</span> seconds</div>
             <div id = "team1">
                 Team 1 
                 <div id="score1">Score:
