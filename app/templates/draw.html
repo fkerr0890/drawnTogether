@@ -14,30 +14,6 @@
         var x = "black",
             y = 2;
 
-<<<<<<< HEAD
-        socket.on('message', function(msg) {
-            const json_data = JSON.parse(msg);
-            x = json_data.color;
-            y = json_data.lineWidth
-            draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
-            var fiveMinutes = 60 * 5,
-            display = document.querySelector('#time');
-            startTimer(fiveMinutes, display);
-        });
-    }
-    
-    function draw(x1,y1,x2,y2,received) {
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.strokeStyle = x;
-        ctx.lineWidth = y;
-        ctx.stroke();
-        ctx.closePath();
-        if (!received) {
-            const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth:y}
-            socket.send(JSON.stringify(json_data));
-=======
         function init() {
             socket = io.connect('http://127.0.0.1:5000');
             canvas = document.getElementById('can');
@@ -64,7 +40,6 @@
                 y = json_data.lineWidth
                 draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
             });
->>>>>>> fb81d88b382b952bf525132b1a8edebb71431bc2
         }
 
         function draw(x1,y1,x2,y2,received) {
@@ -102,41 +77,20 @@
                         dot_flag = false;
                     }
                 }
-<<<<<<< HEAD
             }
-    }
-    
-    function startTimer(duration, display) {
-        var timer = duration, seconds;
-        setInterval(function () {
-            
-            seconds = parseInt(timer % 60, 10);
 
-            seconds = seconds < 10 ? "0" + seconds : seconds;
-
-            display.textContent = seconds;
-
-            // if (--timer < 0) {
-            //     timer = duration;
-            // }
-        }, 1000);
-    }
-
-=======
-                if (res == 'up' || res == "out") {
-                    flag = false;
-                }
-                if (res == 'move') {
-                    if (flag) {
-                        prevX = currX;
-                        prevY = currY;
-                        currX = e.clientX - canvas.offsetLeft;
-                        currY = e.clientY - canvas.offsetTop;
-                        draw(prevX, prevY, currX, currY, false);
-                    }
-                }
+        if (res == 'up' || res == "out") {
+            flag = false;
         }
->>>>>>> fb81d88b382b952bf525132b1a8edebb71431bc2
+        if (res == 'move') {
+            if (flag) {
+                prevX = currX;prevY = currY;
+                currX = e.clientX - canvas.offsetLeft;
+                currY = e.clientY - canvas.offsetTop;
+                draw(prevX, prevY, currX, currY, false);
+            }
+        }
+
     </script>
 
     </head>
@@ -155,14 +109,7 @@
             <div style="position:absolute;top:20%;left:88%;">Eraser</div>
             <div style="position:absolute;top:23%;left:89%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=28"></div>
             <button id= "erase" onclick="erase()">Clear</button>
-<<<<<<< HEAD
-            <label id="labeldraw">
-                Guess:
-                <input id="answer" type="text" name="guess_input">
-            </label>
-            <button id="enter">Enter</button>
-            <div>The Round ends in <span id="time">0</span> seconds</div>
-=======
+
             {% if drawer == true %}
                 <label id="labeldraw">
                     Guess:
@@ -170,7 +117,6 @@
                 </label>
                 <button type="submit" id="enter">Enter</button>
             {% endif %}
->>>>>>> fb81d88b382b952bf525132b1a8edebb71431bc2
             <div id = "team1">
                 Team 1 
                 <div id="score1">Score:
