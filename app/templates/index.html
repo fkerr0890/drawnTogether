@@ -8,8 +8,16 @@
 <body id="lobbybody">
 <div class="container">
     <h1 id="lobby">Drawn Together</h1>
-    <ul id="userList1">Team 1</ul>
-    <ul id="userList2">Team 2</ul>
+    <ul id="userList1">Team 1
+        {% for user in users %}
+            {% if user.team == 0 %}<li>{{ user.username }}</li>{% endif %}
+        {% endfor %}
+    </ul>
+    <ul id="userList2">Team 2
+        {% for user in users %}
+            {% if user.team == 1 %}<li>{{ user.username }}</li>{% endif %}
+        {% endfor %}
+    </ul>
     <input type="text" id="username">
     <button id="joinTeam">Join Room</button>
     <a id="startGame"><button>Start Game</button></a>
@@ -22,11 +30,12 @@
             let user;
 
             lobby_socket.on('message', function(msg) {
-                if (msg != "userAlreadyExistError"){
+                const json_data = JSON.parse(msg);
+
+                if (msg !== "userAlreadyExistError"){
                     var li = document.createElement("li");
-                    li.appendChild(document.createTextNode(msg));
-                    if (document.getElementById('userList1').getElementsByTagName("li").length <=
-                        document.getElementById('userList2').getElementsByTagName("li").length) {
+                    li.appendChild(document.createTextNode(json_data.username));
+                    if (json_data.team === 0) {
                         document.getElementById('userList1').appendChild(li)
                     } else {
                         document.getElementById('userList2').appendChild(li)
