@@ -1,6 +1,8 @@
-import os
+import requests
 
-from flask import Flask, render_template, request
+# Things to do: Add logic to check that the user is not in the list already.
+
+from flask import Flask, render_template, request, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, send, join_room, leave_room, emit
 
@@ -8,12 +10,6 @@ app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 socketio = SocketIO(app, cors_allowed_origins='*')
 db = SQLAlchemy(app)
-
-
-# users = []
-# team1 = []
-# team2 = []
-
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -36,8 +32,13 @@ def play(username):
     team1 = User.query.filter_by(team=0)
     team2 = User.query.filter_by(team=1)
     user = User.query.filter_by(username=username).first()
-    print(user.drawer)
-    return render_template("draw.html", team1=team1, team2=team2, username=username, drawer=user.drawer)
+
+    return render_template("draw.html",
+                           team1=team1,
+                           team2=team2,
+                           username=username,
+                           drawer=user.drawer,
+                           word_to_guess=get_random_noun())
 
 
 @app.route('/')
@@ -47,14 +48,19 @@ def lobby():
 
 @socketio.on('joinUsername', namespace="/lobby")
 def receive_username(username):
-    send(username, broadcast=True)
-    len_team1 = User.query.filter_by(team=0).count()
-    len_team2 = User.query.filter_by(team=1).count()
-    if len_team1 <= len_team2:
-        add_teamMember(0, username, len_team1)
+    session["username"] = username
+    # Check that the user is not in the database already, according to sid
+    if User.query.filter_by(id=request.sid).first() is None:
+        send(username, broadcast=True)
+        len_team1 = User.query.filter_by(team=0).count()
+        len_team2 = User.query.filter_by(team=1).count()
+        if len_team1 <= len_team2:
+            add_teamMember(0, username, len_team1)
+        else:
+            add_teamMember(1, username, len_team2)
+        print("Lengths: " + str(len_team1) + ", " + str(len_team2))
     else:
-        add_teamMember(1, username, len_team2)
-    print("Lengths: " + str(len_team1) + ", " + str(len_team2))
+        send("userAlreadyExistError")
 
 
 def add_teamMember(team, username, length):
@@ -66,5 +72,13 @@ def add_teamMember(team, username, length):
     db.session.commit()
 
 
+def get_random_noun():
+    URL = "https://random-word-form.herokuapp.com/random/noun"
+    return requests.get(URL).json()[0]
+
+
+# User user session
+
 if __name__ == '__main__':
     socketio.run(app)
+

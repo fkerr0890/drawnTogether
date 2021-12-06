@@ -21,21 +21,18 @@
             var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
             let user;
 
-/*            lobby_socket.on('connect', function() {
-                lobby_socket.send('User has connected!');
-            });*/
-
             lobby_socket.on('message', function(msg) {
-                var li = document.createElement("li");
-                li.appendChild(document.createTextNode(msg));
-
-                if (document.getElementById('userList1').getElementsByTagName("li").length <=
-                    document.getElementById('userList2').getElementsByTagName("li").length)
-                {
-                    document.getElementById('userList1').appendChild(li)
-
-                }else {
-                    document.getElementById('userList2').appendChild(li)
+                if (msg != "userAlreadyExistError"){
+                    var li = document.createElement("li");
+                    li.appendChild(document.createTextNode(msg));
+                    if (document.getElementById('userList1').getElementsByTagName("li").length <=
+                        document.getElementById('userList2').getElementsByTagName("li").length) {
+                        document.getElementById('userList1').appendChild(li)
+                    } else {
+                        document.getElementById('userList2').appendChild(li)
+                    }
+                }else{
+                    alert("You added your name already");
                 }
             });
 
