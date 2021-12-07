@@ -4,7 +4,7 @@ import requests
 
 from flask import Flask, render_template, request, session
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, send
+from flask_socketio import SocketIO, send, join_room, leave_room
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
@@ -49,7 +49,6 @@ def lobby():
 
 @socketio.on('joinUsername', namespace="/lobby")
 def receive_username(username):
-    session["username"] = username
     # Check that the user is not in the database already, according to sid
     if User.query.filter_by(id=request.sid).first() is None:
         len_team1 = User.query.filter_by(team=0).count()
@@ -62,7 +61,10 @@ def receive_username(username):
             team = 1
         send(json.dumps({'username': username, 'team': team}), broadcast=True)
     else:
-        send("userAlreadyExistError")
+        send("userErrorMessage")
+
+    if User.query.count() == 4:
+        send("startGameMessage", broadcast=True)
 
 
 def add_teamMember(team, username, length):
@@ -78,8 +80,6 @@ def get_random_noun():
     URL = "https://random-word-form.herokuapp.com/random/noun"
     return requests.get(URL).json()[0]
 
-
-# User user session
 
 if __name__ == '__main__':
     socketio.run(app)

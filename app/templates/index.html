@@ -20,19 +20,21 @@
     </ul>
     <input type="text" id="username">
     <button id="joinTeam">Join Room</button>
-    <a id="startGame"><button>Start Game</button></a>
+<!--    <a id="startGame"><button>Start Game</button></a>-->
 </div>
 
     <script type="text/javascript">
         $(document).ready(function() {
-
             var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
             let user;
 
             lobby_socket.on('message', function(msg) {
-                const json_data = JSON.parse(msg);
-
-                if (msg !== "userAlreadyExistError"){
+                if (msg === "startGameMessage"){
+                    window.location.replace("http://127.0.0.1:5000/play/"+user)
+                } else if(msg === "userErrorMessage"){
+                    alert("You added your name already");
+                } else{
+                    const json_data = JSON.parse(msg);
                     var li = document.createElement("li");
                     li.appendChild(document.createTextNode(json_data.username));
                     if (json_data.team === 0) {
@@ -40,8 +42,6 @@
                     } else {
                         document.getElementById('userList2').appendChild(li)
                     }
-                }else{
-                    alert("You added your name already");
                 }
             });
 
@@ -49,7 +49,6 @@
                 let username = $('#username');
                 lobby_socket.emit('joinUsername', username.val());
                 user = username.val();
-                $('#startGame').attr('href','/play/'+user)
                 username.val('');
             });
         });
