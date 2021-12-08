@@ -1,59 +1,60 @@
-<html>
-<head>
-<title>Lobby</title>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body id="lobbybody">
-<div class="container">
-    <h1 id="lobby">Drawn Together</h1>
-    <ul id="userList1">Team 1
-        {% for user in users %}
-            {% if user.team == 0 %}<li>{{ user.username }}</li>{% endif %}
-        {% endfor %}
-    </ul>
-    <ul id="userList2">Team 2
-        {% for user in users %}
-            {% if user.team == 1 %}<li>{{ user.username }}</li>{% endif %}
-        {% endfor %}
-    </ul>
-    <input type="text" id="username">
-    <button id="joinTeam">Join Room</button>
-<!--    <a id="startGame"><button>Start Game</button></a>-->
-</div>
+<html lang="en">
+    <head>
+        <title>Lobby</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
 
-    <script type="text/javascript">
-        $(document).ready(function() {
-            var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
-            let user;
+    <body id="lobbybody">
+        <div class="container">
+            <h1 id="lobby">Drawn Together</h1>
+            <ul id="userList1">Team 1
+                {% for user in users %}
+                    {% if user.team == 0 %}<li>{{ user.username }}</li>{% endif %}
+                {% endfor %}
+            </ul>
+            <ul id="userList2">Team 2
+                {% for user in users %}
+                    {% if user.team == 1 %}<li>{{ user.username }}</li>{% endif %}
+                {% endfor %}
+            </ul>
+            <input type="text" id="username">
+            <button id="joinTeam">Join Room</button>
+            <!--    <a id="startGame"><button>Start Game</button></a>-->
+        </div>
 
-            lobby_socket.on('message', function(msg) {
-                if (msg === "startGameMessage"){
-                    window.location.replace("http://127.0.0.1:5000/play/"+user)
-                } else if(msg === "userErrorMessage"){
-                    alert("You added your name already");
-                } else{
-                    const json_data = JSON.parse(msg);
-                    var li = document.createElement("li");
-                    li.appendChild(document.createTextNode(json_data.username));
-                    if (json_data.team === 0) {
-                        document.getElementById('userList1').appendChild(li)
-                    } else {
-                        document.getElementById('userList2').appendChild(li)
+        <script type="text/javascript">
+            $(document).ready(function() {
+                var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
+                let user;
+
+                lobby_socket.on('message', function(msg) {
+                    if (msg === "startGameMessage"){
+                        window.location.replace("http://127.0.0.1:5000/play/"+user)
+                    } else if(msg === "userErrorMessage"){
+                        alert("You added your name already/username already exists");
+                    } else{
+                        const json_data = JSON.parse(msg);
+                        var li = document.createElement("li");
+                        li.appendChild(document.createTextNode(json_data.username));
+                        if (json_data.team === 0) {
+                            document.getElementById('userList1').appendChild(li)
+                        } else {
+                            document.getElementById('userList2').appendChild(li)
+                        }
                     }
-                }
-            });
+                });
 
-            $('#joinTeam').on('click', function (){
-                let username = $('#username');
-                lobby_socket.emit('joinUsername', username.val());
-                user = username.val();
-                username.val('');
+                $('#joinTeam').on('click', function (){
+                    let username = $('#username');
+                    lobby_socket.emit('joinUsername', username.val());
+                    user = username.val();
+                    username.val('');
+                });
             });
-        });
-    </script>
-</body>
+        </script>
+    </body>
 
 
 </html>

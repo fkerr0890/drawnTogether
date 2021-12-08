@@ -1,6 +1,7 @@
 import json
 
 import requests
+import sqlalchemy.exc
 
 from flask import Flask, render_template, request, session
 from flask_sqlalchemy import SQLAlchemy
@@ -14,8 +15,8 @@ db = SQLAlchemy(app)
 
 class User(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.String(200), primary_key=True)
-    username = db.Column(db.String(200), nullable=False)
+    id = db.Column(db.String(200))
+    username = db.Column(db.String(200), primary_key=True, nullable=False)
     team = db.Column(db.Integer, nullable=False)
     drawer = db.Column(db.Boolean)
 
@@ -50,20 +51,24 @@ def lobby():
 @socketio.on('joinUsername', namespace="/lobby")
 def receive_username(username):
     # Check that the user is not in the database already, according to sid
-    if User.query.filter_by(id=request.sid).first() is None:
-        len_team1 = User.query.filter_by(team=0).count()
-        len_team2 = User.query.filter_by(team=1).count()
-        if len_team1 <= len_team2:
-            add_teamMember(0, username, len_team1)
-            team = 0
+
+    try:
+        if User.query.filter_by(id=request.sid).first() is None:
+            len_team1 = User.query.filter_by(team=0).count()
+            len_team2 = User.query.filter_by(team=1).count()
+            if len_team1 <= len_team2:
+                add_teamMember(0, username, len_team1)
+                team = 0
+            else:
+                add_teamMember(1, username, len_team2)
+                team = 1
+            send(json.dumps({'username': username, 'team': team}), broadcast=True)
         else:
-            add_teamMember(1, username, len_team2)
-            team = 1
-        send(json.dumps({'username': username, 'team': team}), broadcast=True)
-    else:
+            send("userErrorMessage")
+    except sqlalchemy.exc.IntegrityError:
         send("userErrorMessage")
 
-    if User.query.count() == 4:
+    if User.query.count() >= 4:
         send("startGameMessage", broadcast=True)
 
 

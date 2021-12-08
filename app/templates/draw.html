@@ -21,18 +21,21 @@
             w = canvas.width;
             h = canvas.height;
 
-            canvas.addEventListener("mousemove", function (e) {
-                findxy('move', e)
-            }, false);
-            canvas.addEventListener("mousedown", function (e) {
-                findxy('down', e)
-            }, false);
-            canvas.addEventListener("mouseup", function (e) {
-                findxy('up', e)
-            }, false);
-            canvas.addEventListener("mouseout", function (e) {
-                findxy('out', e)
-            }, false);
+            const drawer = "{{ drawer }}";
+            if (drawer === "True") {
+                canvas.addEventListener("mousemove", function (e) {
+                    findxy('move', e)
+                }, false);
+                canvas.addEventListener("mousedown", function (e) {
+                    findxy('down', e)
+                }, false);
+                canvas.addEventListener("mouseup", function (e) {
+                    findxy('up', e)
+                }, false);
+                canvas.addEventListener("mouseout", function (e) {
+                    findxy('out', e)
+                }, false);
+            }
 
             socket.on('message', function(msg) {
                 const json_data = JSON.parse(msg);
@@ -98,7 +101,7 @@
     <body id="drawBody" onload="init()">
         <div class="container2">
             <h1 id="title">Drawn Together</h1>
-            <h2 id="role">{% if drawer == false %} Draw a: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
+            <h2 id="role">{% if drawer == true %} Draw a: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
             <canvas id="can" width="800" height="500" ></canvas>
             <div style="position:absolute;top:12%;left:87%;">Choose Color</div>
             <div style="position:absolute;top:15%;left:87%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
@@ -111,7 +114,7 @@
             <div style="position:absolute;top:23%;left:89%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=28"></div>
             <button id= "erase" onclick="erase()">Clear</button>
 
-            {% if drawer == true %}
+            {% if drawer == false %}
                 <label id="labeldraw">
                     Guess:
                     <input id="answer" type="text" name="guess_input">
