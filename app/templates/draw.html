@@ -38,10 +38,14 @@
             }
 
             socket.on('message', function(msg) {
-                const json_data = JSON.parse(msg);
-                x = json_data.color;
-                y = json_data.lineWidth
-                draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
+                if (msg !== 'game_over') {
+                    const json_data = JSON.parse(msg);
+                    x = json_data.color;
+                    y = json_data.lineWidth
+                    draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
+                }
+                else
+                    alert("You guessed the word");
             });
         }
 
@@ -153,13 +157,15 @@
         </div>
         <script>
             <!--Logic for getting checking the guess-->
-            $('#enter').on('click', function (){
-                let guess_answer = $('#answer');
-                if (guess_answer.val() == '{{word_to_guess}}') {
+            $('#enter').on('click', function () {
+                let guess = $('#answer');
+                /*if (guess_answer.val() == '{{word_to_guess}}') {
                     alert("You guessed the word")
                 }else{
                     guess_answer.val('')
-                }
+                }*/
+                socket.emit('guess',guess.val());
+                guess.val('');
             });
         </script>
     </body>

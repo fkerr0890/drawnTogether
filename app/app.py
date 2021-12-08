@@ -1,11 +1,11 @@
 import json
+import random
 
-import requests
 import sqlalchemy.exc
 
 from flask import Flask, render_template, request, session
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, send, join_room, leave_room
+from flask_socketio import SocketIO, send, join_room, leave_room, emit
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
@@ -17,7 +17,7 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.String(200))
     username = db.Column(db.String(200), primary_key=True, nullable=False)
-    team = db.Column(db.Integer, nullable=False)
+    team = db.Column(db.Integer)
     drawer = db.Column(db.Boolean)
 
     def __repr__(self):
@@ -34,13 +34,20 @@ def play(username):
     team1 = User.query.filter_by(team=0)
     team2 = User.query.filter_by(team=1)
     user = User.query.filter_by(username=username).first()
+    try:
+        word = get_random_noun()
+        db.session.add(User(id=word, username='word'))
+        db.session.commit()
+    except sqlalchemy.exc.IntegrityError:
+        db.session.rollback()
+        word = User.query.filter_by(username='word').first().id
 
     return render_template("draw.html",
                            team1=team1,
                            team2=team2,
                            username=username,
                            drawer=user.drawer,
-                           word_to_guess=get_random_noun())
+                           word_to_guess=word)
 
 
 @app.route('/')
@@ -82,8 +89,17 @@ def add_teamMember(team, username, length):
 
 
 def get_random_noun():
-    URL = "https://random-word-form.herokuapp.com/random/noun"
-    return requests.get(URL).json()[0]
+    # url = "https://random-word-form.herokuapp.com/random/noun"
+    # return requests.get(url).json()[0]
+    lines = open('../static/words.txt').read().splitlines()
+    return random.choice(lines).capitalize()
+
+
+@socketio.on('guess')
+def validate_guess(guess):
+    existing_word = User.query.filter_by(username='word').first().id
+    if guess.casefold() == existing_word.casefold():
+        send('game_over', broadcast=True)
 
 
 if __name__ == '__main__':
