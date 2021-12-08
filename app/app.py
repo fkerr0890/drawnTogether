@@ -91,7 +91,7 @@ def add_teamMember(team, username, length):
 def get_random_noun():
     # url = "https://random-word-form.herokuapp.com/random/noun"
     # return requests.get(url).json()[0]
-    lines = open('../static/words.txt').read().splitlines()
+    lines = open('static/words.txt').read().splitlines()
     return random.choice(lines).capitalize()
 
 
