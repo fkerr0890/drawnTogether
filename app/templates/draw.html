@@ -116,14 +116,14 @@
             <div style="position:absolute;top:18%;left:91%;width:10px;height:10px;background:black;border:1px solid;" id="black" onclick="x='black'; y=2"></div>
             <div style="position:absolute;top:20%;left:88%;">Eraser</div>
             <div style="position:absolute;top:23%;left:89%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=28"></div>
-            <button id= "erase" onclick="erase()">Clear</button>
+            
 
             {% if drawer == false %}
                 <label id="labeldraw">
                     Guess:
                     <input id="answer" type="text" name="guess_input">
                 </label>
-                <button type="submit" id="enter">Enter</button>
+                <button id="enter" type="submit">Enter</button>
             {% endif %}
             <div id = "team1">
                 Team 1
@@ -156,7 +156,7 @@
             </div>
         </div>
         <script>
-            <!--Logic for getting checking the guess-->
+            
             $('#enter').on('click', function () {
                 let guess = $('#answer');
                 /*if (guess_answer.val() == '{{word_to_guess}}') {
@@ -167,6 +167,8 @@
                 socket.emit('guess',guess.val());
                 guess.val('');
             });
+            
+
         </script>
     </body>
     </html>

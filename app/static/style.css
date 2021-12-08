@@ -4,7 +4,7 @@
     display: flex;
     width: 99%;
     height: 98%;
-    justify-items: center;
+    align-items: center;
     /* top: 0%; left: 50%; transform: translate(-50%, 0); */
     /* margin: 2em 0;
     padding: 4em;
@@ -15,8 +15,8 @@
 }
 .container{
     display: grid;
-    grid-template-columns: 300px 300px 300px 300px ;
-    grid-template-rows: 200px 300px 60px; 
+    grid-template-columns: 19em 19em 19em 19em ;
+    grid-template-rows: 11em 18em 2em; 
     font-family:Shadows Into Light;
 }
 #username,#joinTeam{
@@ -25,22 +25,16 @@
 #username{
     grid-column:3;
     grid-row: 3;
-    width: 150px;
+    width: 11em;
     height: 30px;
 
 }
-#startGame{
-    grid-row: 3;
-    grid-column: 3;
-    align-self: end;
-    margin-left: 1em;
-    font-family:Shadows Into Light;
-}
+
 #joinTeam{
     grid-column: 3;
     grid-row: 3;
-    width: 75px;
-    height: 30px;
+    width: 5em;
+    height: 2.25em;
     margin-left: 11em;
     font-family:Shadows Into Light;
 }
@@ -49,8 +43,8 @@
     border-radius:95% 4% 92% 5%/4% 95% 6% 95%;
     box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset;
     transform: rotate(2deg);
-    width: 250px;
-    height: 250px;
+    width: 16em;
+    height: 16em;
     
     grid-column: 2;
     grid-row: 2;
@@ -61,8 +55,8 @@
     border-radius:95% 4% 92% 5%/4% 95% 6% 95%;
     box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset;
     transform: rotate(2deg);
-    width: 250px;
-    height: 250px; 
+    width: 16em;
+    height: 16em; 
     margin-left: 8em;
     grid-column: 3;
     grid-row: 2;
@@ -70,7 +64,7 @@
 }
 #lobby{
     
-    font-size: 82px; 
+    font-size: 5em; 
     grid-column: 2 / 5;
     margin-left: 1.75em;
     grid-row: 1;
@@ -88,9 +82,9 @@
 }
 .container2{
     display: grid;
-    grid-template-columns: 50px 800px 250px;
-    grid-template-rows:  50px 450px 20px; 
-    gap: 30px;
+    grid-template-columns: 5em 50em 20em;
+    grid-template-rows:  3em 27em 2em; 
+    gap: 2em;
 }
 #role{
     grid-row: 1;
@@ -101,10 +95,13 @@
     background-color: white;
     grid-row: 2;
     grid-column: 2;
+    width: 50em;
+    height: 30em;
     border:2px solid;
-    transform: rotate(2deg);
+    /* transform: rotate(2deg); */
     border-width: 3px 4px 3px 5px;
-    border-radius:95% 4% 92% 5%/4% 95% 6% 95%;
+    /* border-radius:95% 4% 92% 5%/4% 95% 6% 95%; */
+    
     box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset;
     
 }
@@ -129,8 +126,8 @@
     grid-column: 3;
     grid-row: 2;
     border:2px solid;
-    width: 202px;
-    height: 175px;
+    width: 13em;
+    height: 11em;
     
 }
 #team2{
@@ -139,16 +136,16 @@
     transform: rotate(2deg);
     grid-column: 3;
     grid-row: 2;
-    width: 202px;
-    height: 175px;
+    width: 13em;
+    height: 11em;
     align-self: flex-end;
     box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset;
     border:2px solid;
     
 }
 .team{
-    width: 200px;
-    height: 150px;
+    width: 13em;
+    height: 11em;
     /* border-width: 3px 4px 3px 5px; */
     /* border-radius:95% 4% 92% 5%/4% 95% 6% 95%; */
     /* box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset; */
@@ -163,8 +160,8 @@
 }
 
 #enter{
-    width: 50px;
-    height: 25px;
+    width:3em;
+    height: 2em;
     grid-row: 3;
     grid-column: 3;
     margin-left: 17em; 
@@ -176,35 +173,28 @@
     font-family:Shadows Into Light;
     
 }
-#erase{
-    width: 50px;
-    height: 20px;
-    grid-row: 2;
-    grid-column: 1;
-    margin-left: 1em; 
-    
-}
+
 #score1{
-    width: 50px;
-    height: 20px;
+    width: 3em;
+    height: .25em;
     float: right;
     margin-right: 2em;
 }
 #numberone{
-    width: 10px;
-    height: 20px;
+    width: .5em;
+    height: .25em;
     float: right;
     /* margin-right: 2em; */
 }
 #score2{
-    width: 50px;
-    height: 20px;
+    width: 3em;
+    height: .25em;
     float: right;
     margin-right: 2em;
 }
 #numbertwo{
-    width: 10px;
-    height: 20px;
+    width: .5em;
+    height: .25em;
     float: right;
     /* margin-right: 2em; */
 }
