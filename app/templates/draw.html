@@ -44,8 +44,10 @@
                     y = json_data.lineWidth
                     draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
                 }
-                else
+                else {
                     alert("You guessed the word");
+                    window.location.replace("http://127.0.0.1:5000/play/"+ {{ username }});
+                }
             });
         }
 
@@ -58,7 +60,7 @@
             ctx.stroke();
             ctx.closePath();
             if (!received) {
-                const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth:y}
+                const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth: y}
                 socket.send(JSON.stringify(json_data));
             }
         }
@@ -68,7 +70,7 @@
 
 
         function findxy(res, e) {
-            if (res == 'down') {
+            if (res === 'down') {
                 prevX = currX;
                 prevY = currY;
                 currX = e.clientX - canvas.offsetLeft;
@@ -85,11 +87,11 @@
                 }
             }
 
-            if (res == 'up' || res == "out") {
+            if (res === 'up' || res === "out") {
                 flag = false;
             }
 
-            if (res == 'move') {
+            if (res === 'move') {
                 if (flag) {
                     prevX = currX;
                     prevY = currY;
@@ -105,7 +107,7 @@
     <body id="drawBody" onload="init()">
         <div class="container2">
             <h1 id="title">Drawn Together</h1>
-            <h2 id="role">{% if drawer == true %} Draw a: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
+            <h2 id="role">{% if drawer == true %} Word to draw: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
             <canvas id="can" width="800" height="500" ></canvas>
             <div style="position:absolute;top:12%;left:87%;">Choose Color</div>
             <div style="position:absolute;top:15%;left:87%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
@@ -128,7 +130,7 @@
             <div id = "team1">
                 Team 1
                 <div id="score1">Score:
-                    <div id="numberone">0</div>
+                    <div id="numberone">{{ team1_score }}</div>
                 </div>
                 <div class="team">
                     <ul>
@@ -141,7 +143,7 @@
             <div id = team2>
                 Team 2
                 <div id="score2">Score:
-                    <div id="numbertwo">0</div>
+                    <div id="numbertwo">{{ team2_score }}</div>
                 </div>
                 <div class="team">
                     <ul>
@@ -159,12 +161,8 @@
             <!--Logic for getting checking the guess-->
             $('#enter').on('click', function () {
                 let guess = $('#answer');
-                /*if (guess_answer.val() == '{{word_to_guess}}') {
-                    alert("You guessed the word")
-                }else{
-                    guess_answer.val('')
-                }*/
-                socket.emit('guess',guess.val());
+                const json_data = {'guess': guess.val(), 'team': {{ team }}}
+                socket.emit('guess', JSON.stringify(json_data));
                 guess.val('');
             });
         </script>

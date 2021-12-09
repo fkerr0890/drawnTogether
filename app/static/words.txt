@@ -112,7 +112,6 @@ quicksand
 fog
 gasoline
 pocket
-honk
 sponge
 rim
 bride
@@ -278,7 +277,6 @@ Row
 Catch
 Watch
 Swing
-Learn
 Love
 Drink
 Eat
@@ -363,7 +361,6 @@ Skate
 Electricity
 Thief
 Teapot
-Deep
 Spring
 Nature
 Shallow
