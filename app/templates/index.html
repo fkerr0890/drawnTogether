@@ -49,9 +49,28 @@
                     }
                 });
 
-                $('#joinTeam').on('click', function (){
+                function send_username(){
                     let username = $('#username');
-                    lobby_socket.emit('joinUsername', username.val());
+                    if (username.val() !== ''){
+                        lobby_socket.emit('joinUsername', username.val());
+                    }else{
+                        alert('Your username cannot be empty')
+                    }
+                }
+
+                var input = document.getElementById("username");
+
+                // Send username when pressing enter
+                input.addEventListener("keyup", function(event) {
+                  // Number 13 is the "Enter" key on the keyboard
+                  if (event.keyCode === 13) {
+                      send_username()
+                      }
+                   });
+
+                // Send username on click
+                $('#joinTeam').on('click', function (){
+                    send_username()
                 });
             });
         </script>

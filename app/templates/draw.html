@@ -169,13 +169,13 @@
             </div>
         </div>
         <script>
-            
-            $('#enter').on('click', function () {
+
+            function send_guess(){
                 let guess = $('#answer');
                 if (startGame)
                     socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
                 guess.val('');
-            });
+            }
 
             function startTimer(duration, element) {
                 let timeRemaining = duration
@@ -186,6 +186,8 @@
                     stopTimer(id, timeRemaining, element)
                 }, 1000);
             }
+
+            var input = document.getElementById("answer");
 
             function stopTimer(id, timeRemaining, element) {
                 if (timeRemaining < 0) {
@@ -199,6 +201,18 @@
                 startTimer(5, $('#countdown_text'));
             });
 
+            // Send guess when pressing Enter
+            input.addEventListener("keyup", function(event) {
+              // Number 13 is the "Enter" key on the keyboard
+              if (event.keyCode === 13) {
+                  send_guess()
+                  }
+               });
+
+            // Send guess on click
+            $('#enter').on('click', function () {
+               send_guess()
+            });
         </script>
     </body>
     </html>
