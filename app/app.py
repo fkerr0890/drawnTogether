@@ -5,7 +5,7 @@ import sqlalchemy.exc
 
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, send, join_room, leave_room, emit
+from flask_socketio import SocketIO, send, join_room, leave_room, emit, rooms
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
@@ -35,15 +35,21 @@ class Data(db.Model):
 
 @socketio.on('message')
 def handleMessage(msg):
-    send(msg, broadcast=True)
+    json_data = json.loads(msg)
+    # socketio.emit('message', msg, to=str(json_data.get('room')))
+    # emit('message', msg, to=json_data.get('room'))
+    emit('message', msg, room=json_data.get('room'), include_self=False)
+    # emit('message', msg, broadcast=True)
 
 
 @app.route('/play/<username>')
 def play(username):
     team1 = User.query.filter_by(team=0)
     team2 = User.query.filter_by(team=1)
-    team1_score = 0 if Data.query.filter_by(type='team0_score').first() is None else Data.query.filter_by(type='team0_score').first().value
-    team2_score = 0 if Data.query.filter_by(type='team1_score').first() is None else Data.query.filter_by(type='team1_score').first().value
+    team1_score = 0 if Data.query.filter_by(type='team0_score').first() is None else Data.query.filter_by(
+        type='team0_score').first().value
+    team2_score = 0 if Data.query.filter_by(type='team1_score').first() is None else Data.query.filter_by(
+        type='team1_score').first().value
     user = User.query.filter_by(username=username).first()
     try:
         word = get_random_noun()
@@ -69,7 +75,7 @@ def lobby():
     return render_template("index.html", users=User.query.all())
 
 
-@socketio.on('joinUsername', namespace="/lobby")
+@socketio.on('joinUsername')
 def receive_username(username):
     # Check that the user is not in the database already, according to sid
 
@@ -93,6 +99,11 @@ def receive_username(username):
         send("startGameMessage", broadcast=True)
 
 
+@socketio.on('join_room')
+def add_to_room(msg):
+    join_room(msg)
+
+
 def add_teamMember(team, username, length):
     if length == 0:
         new_user = User(id=request.sid, username=username, team=team, drawer=True)
@@ -111,11 +122,10 @@ def get_random_noun():
 
 @socketio.on('guess')
 def validate_guess(msg):
-    msg = json.loads(msg)
     existing_word = Data.query.filter_by(type='word').first().value
-    if msg.get('guess').casefold() == existing_word.casefold():
+    if msg['guess'].casefold() == existing_word.casefold():
         reset()
-        updateScore(msg.get('team'))
+        updateScore(msg['team'])
         send('game_over', broadcast=True)
 
 
@@ -123,11 +133,9 @@ def updateScore(team):
     data_type = 'team' + str(team) + '_score'
     if Data.query.filter_by(type=data_type).first() is None:
         db.session.add(Data(type=data_type, value="1"))
-        print(data_type + "1")
     else:
         existing_score = Data.query.get(data_type)
         existing_score.value = str(int(existing_score.value) + 1)
-        print(data_type + existing_score.value)
     db.session.commit()
 
 

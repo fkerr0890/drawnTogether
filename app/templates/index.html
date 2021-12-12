@@ -21,12 +21,11 @@
             </ul>
             <input type="text" id="username">
             <button id="joinTeam">Join Room</button>
-            <!--    <a id="startGame"><button>Start Game</button></a>-->
         </div>
 
         <script type="text/javascript">
             $(document).ready(function() {
-                var lobby_socket = io.connect('http://127.0.0.1:5000/lobby');
+                var lobby_socket = io.connect('http://127.0.0.1:5000');
                 let user = '';
                 let username = $('#username');
                 lobby_socket.on('message', function(msg) {

@@ -16,6 +16,7 @@
 
         function init() {
             socket = io.connect('http://127.0.0.1:5000');
+            socket.emit('join_room',"{{ team }}")
             canvas = document.getElementById('can');
             ctx = canvas.getContext("2d");
             w = canvas.width;
@@ -37,7 +38,7 @@
                 }, false);
             }
 
-            socket.on('message', function(msg) {
+            socket.on('message', (msg) => {
                 if (msg !== 'game_over') {
                     const json_data = JSON.parse(msg);
                     x = json_data.color;
@@ -60,7 +61,7 @@
             ctx.stroke();
             ctx.closePath();
             if (!received) {
-                const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth: y}
+                const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth: y, room: "{{team}}" };
                 socket.send(JSON.stringify(json_data));
             }
         }
@@ -148,10 +149,7 @@
                 <div class="team">
                     <ul>
                         {%for user in team2%}
-                            <li>{% if username == user.username %}
-                                    {{ user }}(Me)
-                                {% else %}
-                                    {{ user }}{% endif %}</li>
+                            <li>{% if username == user.username %}{{ user }}(Me){% else %}{{ user }}{% endif %}</li>
                         {%endfor%}
                     </ul>
                 </div>
@@ -161,8 +159,7 @@
             
             $('#enter').on('click', function () {
                 let guess = $('#answer');
-                const json_data = {'guess': guess.val(), 'team': {{ team }}}
-                socket.emit('guess', JSON.stringify(json_data));
+                socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
                 guess.val('');
             });
             
