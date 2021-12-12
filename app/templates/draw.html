@@ -156,14 +156,27 @@
             </div>
         </div>
         <script>
-            
-            $('#enter').on('click', function () {
+
+            function send_guess(){
                 let guess = $('#answer');
                 socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
                 guess.val('');
-            });
-            
+            }
 
+            var input = document.getElementById("answer");
+
+            // Send guess when pressing Enter
+            input.addEventListener("keyup", function(event) {
+              // Number 13 is the "Enter" key on the keyboard
+              if (event.keyCode === 13) {
+                  send_guess()
+                  }
+               });
+
+            // Send guess on click
+            $('#enter').on('click', function () {
+               send_guess()
+            });
         </script>
     </body>
     </html>
