@@ -3,9 +3,9 @@ import random
 
 import sqlalchemy.exc
 
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, send, join_room, leave_room, emit, rooms
+from flask_socketio import SocketIO, send, join_room, emit
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
@@ -125,18 +125,26 @@ def validate_guess(msg):
     existing_word = Data.query.filter_by(type='word').first().value
     if msg['guess'].casefold() == existing_word.casefold():
         reset()
-        updateScore(msg['team'])
-        send('game_over', broadcast=True)
+        score = updateScore(msg['team'])
+        if score == 5:
+            db.drop_all()
+            db.create_all()
+            send('reset', broadcast=True)
+        else:
+            send('game_over', broadcast=True)
 
 
 def updateScore(team):
     data_type = 'team' + str(team) + '_score'
     if Data.query.filter_by(type=data_type).first() is None:
         db.session.add(Data(type=data_type, value="1"))
+        score = '1'
     else:
         existing_score = Data.query.get(data_type)
         existing_score.value = str(int(existing_score.value) + 1)
+        score = existing_score.value
     db.session.commit()
+    return int(score)
 
 
 def reset():

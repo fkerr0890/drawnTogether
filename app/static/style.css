@@ -97,13 +97,18 @@
     grid-column: 2;
     width: 50em;
     height: 30em;
-    border:2px solid;
-    /* transform: rotate(2deg); */
-    border-width: 3px 4px 3px 5px;
-    /* border-radius:95% 4% 92% 5%/4% 95% 6% 95%; */
+    /*border:2px solid;*/
+    /*border-width: 3px 4px 3px 5px;*/
 
     box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset;
     
+}
+
+#countdown_text {
+    grid-row: 3;
+    grid-column: 2;
+    margin: 10% auto;
+    color: cornflowerblue;
 }
 
 #answer{
@@ -154,6 +159,7 @@
 }
 
 #title{
+    color: cornflowerblue;
     margin-left: 1em;
     grid-row: 1;
     grid-column: 1/3;

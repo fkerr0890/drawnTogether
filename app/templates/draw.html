@@ -14,6 +14,8 @@
         var x = "black",
             y = 2;
 
+        let startGame = false;
+
         function init() {
             socket = io.connect('http://127.0.0.1:5000');
             socket.emit('join_room',"{{ team }}")
@@ -39,15 +41,19 @@
             }
 
             socket.on('message', (msg) => {
-                if (msg !== 'game_over') {
+                if (msg !== 'game_over' && msg !== 'reset') {
                     const json_data = JSON.parse(msg);
                     x = json_data.color;
                     y = json_data.lineWidth
                     draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
                 }
                 else {
-                    alert("You guessed the word");
-                    window.location.replace("http://127.0.0.1:5000/play/"+ "{{ username }}");
+                    if (msg === 'game_over') {
+                        //alert("You guessed the word");
+                        window.location.replace("http://127.0.0.1:5000/play/" + "{{ username }}");
+                    }
+                    else
+                        window.location.replace("http://127.0.0.1:5000/");
                 }
             });
         }
@@ -71,45 +77,52 @@
 
 
         function findxy(res, e) {
-            if (res === 'down') {
-                prevX = currX;
-                prevY = currY;
-                currX = e.clientX - canvas.offsetLeft;
-                currY = e.clientY - canvas.offsetTop;
-
-                flag = true;
-                dot_flag = true;
-                if (dot_flag) {
-                    ctx.beginPath();
-                    ctx.fillStyle = x;
-                    ctx.fillRect(currX, currY, 2, 2);
-                    ctx.closePath();
-                    dot_flag = false;
-                }
-            }
-
-            if (res === 'up' || res === "out") {
-                flag = false;
-            }
-
-            if (res === 'move') {
-                if (flag) {
+            if (startGame) {
+                let rect = canvas.getBoundingClientRect();
+                let scaleX = canvas.width / rect.width,
+                    scaleY = canvas.height / rect.height;
+                if (res === 'down') {
                     prevX = currX;
                     prevY = currY;
-                    currX = e.clientX - canvas.offsetLeft;
-                    currY = e.clientY - canvas.offsetTop;
-                    draw(prevX, prevY, currX, currY, false);
+                    currX = (e.clientX - rect.left) * scaleX
+                    currY = (e.clientY - rect.top) * scaleY
+
+                    flag = true;
+                    dot_flag = true;
+                    if (dot_flag) {
+                        ctx.beginPath();
+                        ctx.fillStyle = x;
+                        ctx.fillRect(currX, currY, 2, 2);
+                        ctx.closePath();
+                        dot_flag = false;
+                    }
+                }
+
+                if (res === 'up' || res === "out") {
+                    flag = false;
+                }
+
+                if (res === 'move') {
+                    if (flag) {
+                        prevX = currX;
+                        prevY = currY;
+                        currX = (e.clientX - rect.left) * scaleX
+                        currY = (e.clientY - rect.top) * scaleY
+                        draw(prevX, prevY, currX, currY, false);
+                    }
                 }
             }
         }
     </script>
+    <title>Play</title>
 
-    </head>
+</head>
     <body id="drawBody" onload="init()">
         <div class="container2">
             <h1 id="title">Drawn Together</h1>
             <h2 id="role">{% if drawer == true %} Word to draw: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
             <canvas id="can" width="800" height="500" ></canvas>
+            <h1 id="countdown_text">Round starting in </h1>
             <div style="position:absolute;top:12%;left:87%;">Choose Color</div>
             <div style="position:absolute;top:15%;left:87%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
             <div style="position:absolute;top:15%;left:89%;width:10px;height:10px;background:blue;border:1px solid;" id="blue" onclick="x='blue'; y=2"></div>
@@ -159,10 +172,32 @@
             
             $('#enter').on('click', function () {
                 let guess = $('#answer');
-                socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
+                if (startGame)
+                    socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
                 guess.val('');
             });
-            
+
+            function startTimer(duration, element) {
+                let timeRemaining = duration
+                element.html(element.html().substring(0, element.html().length-1) + " " + parseInt(timeRemaining,10))
+                let id = setInterval(function () {
+                    timeRemaining--
+                    element.html(element.html().substring(0, element.html().length-1) + " " + parseInt(timeRemaining,10))
+                    stopTimer(id, timeRemaining, element)
+                }, 1000);
+            }
+
+            function stopTimer(id, timeRemaining, element) {
+                if (timeRemaining < 0) {
+                    clearInterval(id);
+                    element.hide();
+                    startGame = true;
+                }
+            }
+
+            $(document).ready(function () {
+                startTimer(5, $('#countdown_text'));
+            });
 
         </script>
     </body>
