@@ -24,16 +24,25 @@
         </div>
 
         <script type="text/javascript">
+            <!-- Connect to the websocket when the webpage loads -->
             $(document).ready(function() {
                 var lobby_socket = io.connect('http://127.0.0.1:5000');
                 let user = '';
                 let username = $('#username');
+
+                <!-- Mange application state based on the messages from receive_username function in app.py  -->
                 lobby_socket.on('message', function(msg) {
+
+                        <!-- When there are more than 4 users, redirect all users to the play room  -->
                     if (msg === "startGameMessage"){
                         window.location.replace("http://127.0.0.1:5000/play/"+user);
+
+                        <!-- Check if user already exists  -->
                     } else if(msg === "userErrorMessage"){
                         alert("You added your name already/username already exists");
                         username.val('');
+
+                        <!-- Add user to the team  -->
                     } else{
                         const json_data = JSON.parse(msg);
                         var li = document.createElement("li");
@@ -49,6 +58,7 @@
                     }
                 });
 
+                <!-- Function to retrieve user input and send it through the socket -->
                 function send_username(){
                     let username = $('#username');
                     if (username.val() !== ''){

@@ -15,7 +15,7 @@
             y = 2;
 
         let startGame = false;
-
+        <!-- Connect to socket and send users to specific rooms when the page loads  -->
         function init() {
             socket = io.connect('http://127.0.0.1:5000');
             socket.emit('join_room',"{{ team }}")
@@ -24,6 +24,7 @@
             w = canvas.width;
             h = canvas.height;
 
+            <!-- Logic to track user mouse on the canvas  -->
             const drawer = "{{ drawer }}";
             if (drawer === "True") {
                 canvas.addEventListener("mousemove", function (e) {
@@ -40,6 +41,7 @@
                 }, false);
             }
 
+            <!-- Share the information of the canvas across rooms, end the round and end the game   -->
             socket.on('message', (msg) => {
                 if (msg !== 'game_over' && msg !== 'reset') {
                     const json_data = JSON.parse(msg);
@@ -133,7 +135,7 @@
             <div style="position:absolute;top:20%;left:88%;">Eraser</div>
             <div style="position:absolute;top:23%;left:89%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=28"></div>
             
-
+            <!-- Add users and scores to their specific teams -->
             {% if drawer == false %}
                 <label id="labeldraw">
                     Guess:
@@ -170,6 +172,7 @@
         </div>
         <script>
 
+            <!-- Send user guess through Socket.io -->
             function send_guess(){
                 let guess = $('#answer');
                 if (startGame)
@@ -177,6 +180,7 @@
                 guess.val('');
             }
 
+            <!-- Start game timer functionality  -->
             function startTimer(duration, element) {
                 let timeRemaining = duration
                 element.html(element.html().substring(0, element.html().length-1) + " " + parseInt(timeRemaining,10))
