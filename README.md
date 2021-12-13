@@ -20,7 +20,7 @@ Use `pip install python3` if on MacOs
 
 Use this command to create a new virtual environment in the project folder `python3 -m venv <environemnt name>`
 
-4. Activate the virtual environed 
+4. Activate the virtual environment 
 
 Use this command in the project folder to activate the virtual environment 
 `source <your environemnt name>/bin/activate`
@@ -52,5 +52,7 @@ Run `python3 app.py`. Make sure that you are in the `app` folder.
 
 Flask-SocketIO: https://flask-socketio.readthedocs.io/en/latest/  
 W3schools: https://www.w3schools.com/
+
+Github user engichang1467 for pictionary words
 
 

@@ -1,14 +1,9 @@
 @import url(https://fonts.googleapis.com/css?family=Shadows+Into+Light);
 #lobbybody{
-    /* position: absolute; */
     display: flex;
     width: 99%;
     height: 98%;
     align-items: center;
-    /* top: 0%; left: 50%; transform: translate(-50%, 0); */
-    /* margin: 2em 0;
-    padding: 4em;
-    justify-content: center; */
     box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
     background: rgb(255, 255, 255);
     filter: url(#wavy2);
@@ -97,8 +92,6 @@
     grid-column: 2;
     width: 50em;
     height: 30em;
-    /*border:2px solid;*/
-    /*border-width: 3px 4px 3px 5px;*/
 
     box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset;
     
@@ -151,11 +144,6 @@
 .team{
     width: 13em;
     height: 11em;
-    /* border-width: 3px 4px 3px 5px; */
-    /* border-radius:95% 4% 92% 5%/4% 95% 6% 95%; */
-    /* box-shadow: 2px 3px 20px black, 0 0 20px #8a4d0f inset; */
-    /* background-color:rgb(125, 173, 40); */
-    /* border:2px solid; */
 }
 
 #title{
@@ -190,7 +178,6 @@
     width: .5em;
     height: .25em;
     float: right;
-    /* margin-right: 2em; */
 }
 #score2{
     width: 3em;
@@ -202,5 +189,4 @@
     width: .5em;
     height: .25em;
     float: right;
-    /* margin-right: 2em; */
 }

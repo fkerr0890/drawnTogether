@@ -26,7 +26,6 @@ alarm
 far
 comfy
 dripping
-boring
 hot
 cold
 parents

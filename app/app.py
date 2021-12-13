@@ -53,14 +53,13 @@ def handleMessage(msg):
 # App endpoint to expose the playing room based on users
 @app.route('/play/<username>')
 def play(username):
-
     # Querying the database for various state variables
     team1 = User.query.filter_by(team=0)
     team2 = User.query.filter_by(team=1)
-    team1_score = 0 if Data.query.filter_by(type='team0_score').first() is None else Data.query.filter_by(
-        type='team0_score').first().value
-    team2_score = 0 if Data.query.filter_by(type='team1_score').first() is None else Data.query.filter_by(
-        type='team1_score').first().value
+    team1_score = Data.query.filter_by(type='team0_score').first()
+    team1_score = 0 if team1_score is None else team1_score
+    team2_score = Data.query.filter_by(type='team1_score').first()
+    team2_score = 0 if team2_score is None else team2_score
     user = User.query.filter_by(username=username).first()
 
     # Getting a random noun from the local work bank and copying it to the database
@@ -93,7 +92,6 @@ def lobby():
 # Socket.io function to handle new users joining the game
 @socketio.on('joinUsername')
 def receive_username(username):
-
     try:
         # Check that the user is not in the database already, according to sid
         if User.query.filter_by(id=request.sid).first() is None:
@@ -180,6 +178,15 @@ def reset():
     word = Data.query.get('word')
     db.session.delete(word)
     db.session.commit()
+
+
+# @socketio.on('delete_user')
+# def delete_user(msg):
+#     print("Here: " + msg)
+#     user = User.query.get(msg)
+#     leave_room(str(user.team))
+#     db.session.delete(user)
+#     db.session.commit()
 
 
 if __name__ == '__main__':
