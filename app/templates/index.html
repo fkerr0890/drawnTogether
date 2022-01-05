@@ -3,6 +3,7 @@
         <title>Lobby</title>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+        <script src="../static/timer.js"></script>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
@@ -11,16 +12,17 @@
             <h1 id="lobby">Drawn Together</h1>
             <ul id="userList1">Team 1
                 {% for user in users %}
-                    {% if user.team == 0 %}<li>{{ user.username }}</li>{% endif %}
+                    {% if user.team % 2 == 0 %}<li class="team_list_item">{{ user.username }}</li>{% endif %}
                 {% endfor %}
             </ul>
             <ul id="userList2">Team 2
                 {% for user in users %}
-                    {% if user.team == 1 %}<li>{{ user.username }}</li>{% endif %}
+                    {% if user.team % 2 == 1 %}<li>{{ user.username }}</li>{% endif %}
                 {% endfor %}
             </ul>
             <input type="text" id="username">
             <button id="joinTeam">Join Room</button>
+            <h1 class="countdown_text"></h1>
         </div>
 
         <script type="text/javascript">
@@ -29,13 +31,23 @@
                 var lobby_socket = io.connect('http://127.0.0.1:5000');
                 let user = '';
                 let username = $('#username');
+                let countdownText = $('.countdown_text');
+                countdownText.hide();
 
                 // Mange application state based on the messages from receive_username function in app.py
                 lobby_socket.on('message', function(msg) {
-
                     //When there are more than 4 users, redirect all users to the play room
                     if (msg === "startGameMessage"){
-                        window.location.replace("http://127.0.0.1:5000/play/"+user);
+                        if ($("li").length > 4)
+                            countdownText.html("Joining existing game in ");
+                        else
+                            countdownText.html("Entering game in ");
+                        console.log("Start game")
+                        if (user !== '') {
+                            lobby_socket.disconnect();
+                            countdownText.show();
+                            startTimer(3, countdownText, true, user);
+                        }
 
                         //Check if user already exists
                     } else if(msg === "userErrorMessage"){
@@ -43,19 +55,23 @@
                         username.val('');
 
                         //Add user to the team
-                    } else{
-                        const json_data = JSON.parse(msg);
+                    } else if (msg.username !== undefined) {
                         var li = document.createElement("li");
-                        li.appendChild(document.createTextNode(json_data.username));
+                        li.appendChild(document.createTextNode(msg.username));
                         if (user === '')
                             user = username.val();
                         username.val('');
-                        if (json_data.team === 0) {
+                        if (msg.team % 2 === 0) {
                             document.getElementById('userList1').appendChild(li);
                         } else {
                             document.getElementById('userList2').appendChild(li);
                         }
                     }
+                });
+
+                lobby_socket.on('max_users_reached', () => {
+                    $("#userList1 li").empty();
+                    $("#userList2 li").empty();
                 });
 
                 // Function to retrieve user input and send it through the socket

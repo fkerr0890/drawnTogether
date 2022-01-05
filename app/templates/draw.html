@@ -3,6 +3,7 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js" async></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+        <script src="../static/timer.js"></script>
         <script type="text/javascript">
             var socket, canvas, ctx, flag = false,
                 prevX = 0,
@@ -17,16 +18,98 @@
             // Connect to socket and send users to specific rooms when the page loads
             function init() {
                 socket = io.connect('http://127.0.0.1:5000');
+                let performanceEntries = performance.getEntriesByType("navigation");
+                const drawer = "{{ drawer }}";
+                if (performanceEntries[performanceEntries.length-1].type !== "reload") {
+                    startTimer(5, $('.countdown_text'), false, null);
+                    setup(drawer);
+                }
+                else if (drawer === "False") {
+                    $('.countdown_text').hide();
+                    startGame = true;
+                    setup(drawer);
+                }
+                else {
+                    socket.emit('delete_user', "{{ username }}");
+                    alert("You have been removed from the game");
+                    setTimeout(function () {
+                        window.location.replace("http://127.0.0.1:5000/");
+                    },1000);
+                }
 
-                socket.emit('join_room',"{{ team }}")
+                // Share the information of the canvas across rooms, end the round and end the game
+                let array = [];
+                socket.on('message', (msg) => {
+                    if (msg !== 'startGameMessage') {
+                        if (msg !== 'game_over' && msg !== 'reset' && msg !== 'force_reset') {
+                            if (msg.username !== undefined && msg.team !== undefined) {
+                                if (Math.floor(msg.team / 2) === Math.floor(({{ team }}) / 2)) {
+                                    let li = document.createElement("li");
+                                    li.appendChild(document.createTextNode(msg.username));
+                                    if (msg.team % 2 === 0) {
+                                        document.getElementById('team1_list').appendChild(li);
+                                    } else {
+                                        document.getElementById('team2_list').appendChild(li);
+                                    }
+                                }
+                            } else if (msg.color === undefined || msg.lineWidth === undefined) {
+                                console.log("Im Here");
+                                if (drawer === "True")
+                                    debugger;
+                                let data = msg.data;
+                                for (let x = 0; x < data.length; x++) {
+                                    if (data[x] < 0) {
+                                        for (let i = 0; i < data[x] * -1; i++) {
+                                            array.push(0);
+                                        }
+                                    } else
+                                        array.push(data[x]);
+                                }
+                                console.log("Done");
+                                if (array.length !== 0)
+                                    ctx.putImageData(new ImageData(Uint8ClampedArray.from(array), w), 0, 0);
+                            } else {
+                                x = msg.color;
+                                y = msg.lineWidth;
+                                draw(msg.x1, msg.y1, msg.x2, msg.y2, true);
+                            }
+                        } else {
+                            if (msg === 'game_over') {
+                                //alert("You guessed the word");
+                                window.location.replace("http://127.0.0.1:5000/play/" + "{{ username }}");
+                            } else {
+                                socket.disconnect()
+                                if (msg === 'force_reset')
+                                    alert("There are not enough players remaining to continue")
+                                setTimeout(function () {
+                                    window.location.replace("http://127.0.0.1:5000/");
+                                }, 1000);
+                            }
+                        }
+                    }
+                });
+
+                if (drawer === "False") {
+                    socket.emit('load_canvas', {'from':{{ username }},'team':"{{team}}"});
+                }
+
+                socket.on('load_canvas', (msg) => {
+                    if (drawer === "True") {
+                        const data = ctx.getImageData(0,0, w, h).data;
+                        sendCanvas(data,msg);
+                    }
+                });
+            }
+
+            function setup(drawer) {
+                socket.emit('join_room', {'username':{{ username }}, 'team':"{{ team }}"})
                 canvas = document.getElementById('can');
                 ctx = canvas.getContext("2d");
                 w = canvas.width;
                 h = canvas.height;
 
-                // Logic to track user mouse on the canvas
-                const drawer = "{{ drawer }}";
                 if (drawer === "True") {
+                    // Logic to track user mouse on the canvas
                     canvas.addEventListener("mousemove", function (e) {
                         findxy('move', e)
                     }, false);
@@ -40,24 +123,38 @@
                         findxy('out', e)
                     }, false);
                 }
+            }
 
-                // Share the information of the canvas across rooms, end the round and end the game
-                socket.on('message', (msg) => {
-                    if (msg !== 'game_over' && msg !== 'reset') {
-                        const json_data = JSON.parse(msg);
-                        x = json_data.color;
-                        y = json_data.lineWidth
-                        draw(json_data.x1, json_data.y1, json_data.x2, json_data.y2, true)
-                    }
-                    else {
-                        if (msg === 'game_over') {
-                            //alert("You guessed the word");
-                            window.location.replace("http://127.0.0.1:5000/play/" + "{{ username }}");
+            async function sendCanvas(data,to_user) {
+                let zeroCount = 0;
+                let add = true;
+                let msg = [];
+                let promise = new Promise(resolve =>  {
+                    for (let i = 0; i < data.length; i++) {
+                        let entry;
+                        if (data[i] === 0) {
+                            zeroCount--;
+                            add = false;
                         }
-                        else
-                            window.location.replace("http://127.0.0.1:5000/");
+                        else {
+                            add = true;
+                            if (zeroCount !== 0) {
+                                entry = zeroCount;
+                                zeroCount = 0;
+                                i--;
+                            }
+                            else
+                                entry = data[i];
+                        }
+                        if (add)
+                            msg.push(entry);
                     }
+                    if (zeroCount !== 0)
+                        msg.push(zeroCount);
+                    resolve();
                 });
+                await promise;
+                return socket.emit('send_canvas', {'data': msg, 'room': to_user});
             }
 
             /* Draws a line from previous the x,y coordinates to the current x,y coordinates
@@ -72,7 +169,7 @@
                 ctx.closePath();
                 if (!received) {
                     const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth: y, room: "{{team}}" };
-                    socket.send(JSON.stringify(json_data));
+                    socket.emit('message',json_data);
                 }
             }
 
@@ -123,7 +220,7 @@
                 <h1 id="title">Drawn Together</h1>
                 <h2 id="role">{% if drawer == true %} Word to draw: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
                 <canvas id="can" width="800" height="500" ></canvas>
-                <h1 id="countdown_text">Round starting in </h1>
+                <h1 class="countdown_text">Round starting in </h1>
                 <div style="position:absolute;top:12%;left:87%;">Choose Color</div>
                 <div style="position:absolute;top:15%;left:87%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
                 <div style="position:absolute;top:15%;left:89%;width:10px;height:10px;background:blue;border:1px solid;" id="blue" onclick="x='blue'; y=2"></div>
@@ -148,7 +245,7 @@
                         <div id="numberone">{{ team1_score }}</div>
                     </div>
                     <div class="team">
-                        <ul>
+                        <ul id="team1_list">
                         {%for user in team1%}
                             <li>{% if username == user.username %}{{ user }}(Me){% else %}{{ user }}{% endif %}</li>
                         {%endfor%}
@@ -161,7 +258,7 @@
                         <div id="numbertwo">{{ team2_score }}</div>
                     </div>
                     <div class="team">
-                        <ul>
+                        <ul id="team2_list">
                             {%for user in team2%}
                                 <li>{% if username == user.username %}{{ user }}(Me){% else %}{{ user }}{% endif %}</li>
                             {%endfor%}
@@ -179,28 +276,9 @@
                     guess.val('');
                 }
 
-                $(document).ready(function () {
-                    startTimer(5, $('#countdown_text'));
-                });
-
-                // Start game timer functionality
-                function startTimer(duration, element) {
-                    let timeRemaining = duration
-                    element.html(element.html().substring(0, element.html().length-1) + " " + parseInt(timeRemaining,10))
-                    let id = setInterval(function () {
-                        timeRemaining--
-                        element.html(element.html().substring(0, element.html().length-1) + " " + parseInt(timeRemaining,10))
-                        stopTimer(id, timeRemaining, element)
-                    }, 1000);
-                }
-
-                function stopTimer(id, timeRemaining, element) {
-                    if (timeRemaining < 0) {
-                        clearInterval(id);
-                        element.hide();
-                        startGame = true;
-                    }
-                }
+                /*$(document).ready(function () {
+                    startTimer(5, $('.countdown_text'));
+                });*/
 
                 let input = document.getElementById("answer");
                 // Send guess when pressing Enter
@@ -215,6 +293,7 @@
                 $('#enter').on('click', function () {
                    send_guess()
                 });
+
             </script>
         </body>
     </html>
