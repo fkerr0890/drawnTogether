@@ -9,12 +9,12 @@ function startTimer(duration, element, isIndex, user) {
     }, 1000);
 }
 
-function stopTimer(id, timeRemaining, element, isIndex, user) {
+function stopTimer(id, timeRemaining, element, isIndex, userCode) {
     if (timeRemaining < 0) {
         clearInterval(id);
         element.hide();
         startGame = true;
         if (isIndex)
-            window.location.replace("http://127.0.0.1:5000/play/" + user);
+            window.location.replace("http://127.0.0.1:5000/play/" + userCode);
     }
 }

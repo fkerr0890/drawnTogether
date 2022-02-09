@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
-    <body id="lobbybody">
+    <body id="lobbybody" onbeforeunload="alert('function alrt WORKS !!!!')">
         <div class="container">
             <h1 id="lobby">Drawn Together</h1>
             <ul id="userList1">Team 1
@@ -30,10 +30,22 @@
             $(document).ready(function() {
                 var lobby_socket = io.connect('http://127.0.0.1:5000');
                 let user = '';
+                let userCode = Date.now().toString();
                 let username = $('#username');
                 let countdownText = $('.countdown_text');
                 countdownText.hide();
 
+                const beforeUnloadListener = (event) => {
+                    event.preventDefault();
+                    lobby_socket.emit('delete_user', user);
+                    //return event.returnValue = "";
+                };
+
+                window.addEventListener("beforeunload", beforeUnloadListener, {capture: true});
+                /*document.addEventListener("visibilitychange", function() {
+                    if (document.visibilityState === 'hidden' && user !== '')
+                       lobby_socket.emit('delete_user', user)
+                });*/
                 // Mange application state based on the messages from receive_username function in app.py
                 lobby_socket.on('message', function(msg) {
                     //When there are more than 4 users, redirect all users to the play room
@@ -46,7 +58,7 @@
                         if (user !== '') {
                             lobby_socket.disconnect();
                             countdownText.show();
-                            startTimer(3, countdownText, true, user);
+                            startTimer(3, countdownText, true, userCode);
                         }
 
                         //Check if user already exists
@@ -69,16 +81,27 @@
                     }
                 });
 
-                lobby_socket.on('max_users_reached', () => {
-                    $("#userList1 li").empty();
-                    $("#userList2 li").empty();
+                lobby_socket.on('max_users_reached', (msg) => {
+                    let user_count = parseInt(msg)
+                    for (let i=0; i < user_count/2; i++) {
+                        $("#userList1 li:nth-child(1)").remove()
+                    }
+                    for (let i=0; i < user_count/2; i++) {
+                        $("#userList2 li:nth-child(1)").remove()
+                    }
+                });
+
+                lobby_socket.on('delete_user', (msg) => {
+                    $("li").each(function() {
+                       if ($(this).html() === msg)
+                           $(this).remove();
+                    });
                 });
 
                 // Function to retrieve user input and send it through the socket
                 function send_username(){
-                    let username = $('#username');
-                    if (username.val() !== ''){
-                        lobby_socket.emit('joinUsername', username.val());
+                    if (username.val() !== '') {
+                        lobby_socket.emit('joinUsername', {'userCode': userCode, 'username': username.val()});
                     }else{
                         alert('Your username cannot be empty')
                     }

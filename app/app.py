@@ -26,6 +26,7 @@ db = SQLAlchemy(app)
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.String(200))
+    userCode = db.Column(db.String(50))
     username = db.Column(db.String(200), primary_key=True, nullable=False)
     team = db.Column(db.Integer)
     drawer = db.Column(db.Boolean)
@@ -64,10 +65,10 @@ def handleSendCanvas(msg):
 
 
 # App endpoint to expose the playing room based on users
-@app.route('/play/<username>')
-def play(username):
+@app.route('/play/<user_code>')
+def play(user_code):
     # Querying the database for various state variables
-    user = User.query.get(username)
+    user = User.query.filter_by(userCode=user_code).first()
     # user.inGame = True
     db.session.commit()
     base_team = math.floor(user.team / 2) * 2
@@ -91,7 +92,8 @@ def play(username):
     return render_template("draw.html",
                            team1=team1,
                            team2=team2,
-                           username=username,
+                           username=user.username,
+                           user_code=user_code,
                            drawer=user.drawer,
                            team=user.team,
                            word_to_guess=word,
@@ -107,17 +109,21 @@ def lobby():
 
 # Socket.io function to handle new users joining the game
 @socketio.on('joinUsername')
-def receive_username(username):
+def receive_username(msg):
     user_count = User.query.count()
     try:
         # Check that the user is not in the database already, according to sid
         if User.query.filter_by(id=request.sid).first() is None:
 
             # Add user to database based on teams lenght
-            team = (user_count % 2) + math.floor(user_count / 8) * 2
-            length = User.query.filter_by(team=team).count()
-            add_teamMember(team, username, length)
-            emit('message', {'username': username, 'team': team}, broadcast=True)
+            base_team = math.floor(user_count / 8) * 2
+            if User.query.filter_by(team=base_team).count() <= User.query.filter_by(team=base_team+1).count():
+                team = base_team
+            else:
+                team = base_team+1
+            print("User code; " + msg['userCode'])
+            add_teamMember(team, msg['username'], msg['userCode'])
+            emit('message', {'username': msg['username'], 'team': team}, broadcast=True)
 
             # If there are more than 4 users, start the game and move all users to the play room.
             user_count += 1
@@ -126,7 +132,7 @@ def receive_username(username):
                     for user in User.query.all():
                         user.inGame = True
                     db.session.commit()
-                    emit('max_users_reached', broadcast=True)
+                    emit('max_users_reached', str(user_count), broadcast=True)
                     send("startGameMessage", to=request.sid, broadcast=False)
                 else:
                     send("startGameMessage", broadcast=True)
@@ -147,11 +153,11 @@ def add_to_room(msg):
 
 
 # Function to add users to the database
-def add_teamMember(team, username, length):
-    if length == 0:
-        new_user = User(id=request.sid, username=username, team=team, drawer=True, inGame=False)
+def add_teamMember(team, username, user_code):
+    if User.query.filter((User.team == team) & User.drawer).count() == 0:
+        new_user = User(id=request.sid, userCode=user_code, username=username, team=team, drawer=True, inGame=False)
     else:
-        new_user = User(id=request.sid, username=username, team=team, drawer=False, inGame=False)
+        new_user = User(id=request.sid, userCode=user_code, username=username, team=team, drawer=False, inGame=False)
     db.session.add(new_user)
     db.session.commit()
 
@@ -176,7 +182,6 @@ def validate_guess(msg):
         # If score is 5 then restart the game
         base_team = math.floor(msg['team'] / 2) * 2
         if score == 5:
-            # emit('max_users_reached', broadcast=True)
             delete_users(base_team)
             emit('message', 'reset', room=str(base_team))
             emit('message', 'reset', room=str(base_team + 1))
@@ -210,6 +215,8 @@ def reset(team):
 def delete_users(base_team):
     for user in User.query.filter((User.team == base_team) | (User.team == base_team + 1)).all():
         db.session.delete(user)
+    for item in Data.query.all():
+        db.session.delete(item)
     db.session.commit()
 
 
@@ -220,7 +227,8 @@ def delete_user(msg):
     db.session.delete(user)
     db.session.commit()
     base_team = math.floor(user.team / 2) * 2
-    if user.drawer:
+    emit('delete_user', msg, broadcast=True)
+    if user.drawer and user.inGame:
         delete_users(base_team)
         emit('message', 'force_reset', room=str(base_team))
         emit('message', 'force_reset', room=str(base_team + 1))

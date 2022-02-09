@@ -76,7 +76,7 @@
                         } else {
                             if (msg === 'game_over') {
                                 //alert("You guessed the word");
-                                window.location.replace("http://127.0.0.1:5000/play/" + "{{ username }}");
+                                window.location.replace("http://127.0.0.1:5000/play/" + "{{ user_code }}");
                             } else {
                                 socket.disconnect()
                                 if (msg === 'force_reset')
@@ -90,7 +90,7 @@
                 });
 
                 if (drawer === "False") {
-                    socket.emit('load_canvas', {'from':{{ username }},'team':"{{team}}"});
+                    socket.emit('load_canvas', {'from':"{{ username }}",'team':"{{team}}"});
                 }
 
                 socket.on('load_canvas', (msg) => {
@@ -102,7 +102,7 @@
             }
 
             function setup(drawer) {
-                socket.emit('join_room', {'username':{{ username }}, 'team':"{{ team }}"})
+                socket.emit('join_room', {'username':"{{ username }}", 'team':"{{ team }}"})
                 canvas = document.getElementById('can');
                 ctx = canvas.getContext("2d");
                 w = canvas.width;
