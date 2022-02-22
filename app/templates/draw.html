@@ -102,6 +102,15 @@
                         sendCanvas(data,msg);
                     }
                 });
+
+                socket.on('add_word', (msg) => {
+                    let li = document.createElement("li");
+                    li.innerHTML = msg;
+                    let guess_list = $('#guess_list');
+                    if (guess_list.children().length >= 11)
+                        guess_list.children().first().remove();
+                    guess_list.append(li);
+                });
             }
 
             function setup(drawer) {
@@ -224,17 +233,6 @@
                 <h2 id="role">{% if drawer == true %} Word to draw: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
                 <canvas id="can" width="800" height="500" ></canvas>
                 <h1 class="countdown_text">First to 5 points wins!</h1>
-                <div id="color_picker">
-                    <div style="grid-row: 1; grid-column: 1 / span 3">Choose color</div>
-                    <div class="color" id="green" style="grid-row: 2; grid-column: 1; background: green" onclick="x='green'; y=2"></div>
-                    <div class="color" id="blue" style="grid-row: 2; grid-column: 2; background: blue" onclick="x='blue'; y=2"></div>
-                    <div class="color" id="red" style="grid-row: 2; grid-column: 3; background: red" onclick="x='red'; y=2"></div>
-                    <div class="color" id="yellow" style="grid-row: 3; grid-column: 1; background: yellow" onclick="x='yellow'; y=2"></div>
-                    <div class="color" id="orange" style="grid-row: 3; grid-column: 2; background: orange" onclick="x='orange'; y=2"></div>
-                    <div class="color" id="black" style="grid-row: 3; grid-column: 3; background: black" onclick="x='black'; y=2"></div>
-                    <div style="grid-row: 4; grid-column: 1 / span 2">Eraser:</div>
-                    <div class="color" id="white" style="grid-row: 4; grid-column: 3; background: white" onclick="x='white'; y=35"></div>
-                </div>
                 <!-- Add users and scores to their specific teams -->
                 {% if drawer == false %}
                     <label id="labeldraw">
@@ -243,6 +241,18 @@
                     </label>
                     <button id="enter" type="submit">Enter</button>
                     <button id="give_up">Give up</button>
+                {% else %}
+                    <div id="color_picker">
+                        <div style="grid-row: 1; grid-column: 1 / span 3">Choose color</div>
+                        <div class="color" id="green" style="grid-row: 2; grid-column: 1; background: green" onclick="x='green'; y=2"></div>
+                        <div class="color" id="blue" style="grid-row: 2; grid-column: 2; background: blue" onclick="x='blue'; y=2"></div>
+                        <div class="color" id="red" style="grid-row: 2; grid-column: 3; background: red" onclick="x='red'; y=2"></div>
+                        <div class="color" id="yellow" style="grid-row: 3; grid-column: 1; background: yellow" onclick="x='yellow'; y=2"></div>
+                        <div class="color" id="orange" style="grid-row: 3; grid-column: 2; background: orange" onclick="x='orange'; y=2"></div>
+                        <div class="color" id="black" style="grid-row: 3; grid-column: 3; background: black" onclick="x='black'; y=2"></div>
+                        <div style="grid-row: 4; grid-column: 1 / span 2">Eraser:</div>
+                        <div class="color" id="white" style="grid-row: 4; grid-column: 3; background: white" onclick="x='white'; y=35"></div>
+                    </div>
                 {% endif %}
                 <div id = "team1">
                     Team 1
@@ -270,13 +280,14 @@
                         </ul>
                     </div>
                 </div>
+                <ul id="guess_list">Guessed words:</ul>
             </div>
             <script>
 
                 // Send user guess through Socket.io
                 function send_guess(){
                     let guess = $('#answer');
-                    if (startGame)
+                    if (startGame && guess.val().length !== 0)
                         socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
                     guess.val('');
                 }

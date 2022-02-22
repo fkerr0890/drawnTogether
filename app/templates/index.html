@@ -30,7 +30,7 @@
             $(document).ready(function() {
                 var lobby_socket = io.connect('http://127.0.0.1:5000');
                 let user = '';
-                let userCode = Date.now().toString();
+                let userCode = (Math.floor(Math.random() * 99999999) + 1).toString();
                 let username = $('#username');
                 let countdownText = $('.countdown_text');
 

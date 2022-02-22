@@ -115,22 +115,10 @@ def lobby():
 # Socket.io function to handle new users joining the game
 @socketio.on('joinUsername')
 def receive_username(msg):
-    print("Message received")
-    if Data.query.get('incomplete') is None:
-        base_team = math.floor(random.randint(0, 1000000) / 2) * 2
-        print(str(base_team))
-        while User.query.filter_by(team=base_team).count() > 0:
-            print(str(User.query.filter_by(team=base_team).count()))
-            base_team = math.floor(random.randint(0, 1000000) / 2) * 2
-        user_count = 0
-        db.session.add(Data(type='incomplete', value=str(base_team)))
-        db.session.commit()
-    else:
-        base_team = int(Data.query.get('incomplete').value)
-        user_count = User.query.filter((User.team == base_team) | (User.team == base_team + 1)).count()
+    base_team, user_count = retrieve_incomplete_team()
     try:
         # Check that the user is not in the database already, according to sid
-        if User.query.filter_by(id=request.sid).first() is None:
+        if User.query.filter((User.id == request.sid) | (User.userCode == msg['userCode'])).first() is None:
 
             # Add user to database based on teams lenght
             if User.query.filter_by(team=base_team).count() <= User.query.filter_by(team=base_team + 1).count():
@@ -156,6 +144,22 @@ def receive_username(msg):
             send("userErrorMessage")
     except sqlalchemy.exc.IntegrityError:
         send("userErrorMessage")
+
+
+def retrieve_incomplete_team():
+    if Data.query.get('incomplete') is None:
+        base_team = math.floor(random.randint(0, 1000000) / 2) * 2
+        print(str(base_team))
+        while User.query.filter_by(team=base_team).count() > 0:
+            print(str(User.query.filter_by(team=base_team).count()))
+            base_team = math.floor(random.randint(0, 1000000) / 2) * 2
+        user_count = 0
+        db.session.add(Data(type='incomplete', value=str(base_team)))
+        db.session.commit()
+    else:
+        base_team = int(Data.query.get('incomplete').value)
+        user_count = User.query.filter((User.team == base_team) | (User.team == base_team + 1)).count()
+    return base_team, user_count
 
 
 # Socket.io function to add users to specific rooms
@@ -195,9 +199,12 @@ def validate_guess(msg):
             # Reset the word and update score
             reset(msg['team'])
             updateScore(msg['team'], base_team)
+        else:
+            emit('add_word', msg['guess'], room=str(base_team))
+            emit('add_word', msg['guess'], room=str(base_team + 1))
     else:
         if msg['team'] == base_team:
-            team = base_team+1
+            team = base_team + 1
         else:
             team = base_team
         reset(team)

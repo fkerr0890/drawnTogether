@@ -136,6 +136,11 @@
     width: 13em;
     height: 11em;
 }
+#guess_list {
+    grid-column: 4;
+    grid-row: 3;
+    align-self: end;
+}
 
 #title{
     color: cornflowerblue;
@@ -164,7 +169,6 @@
     border-radius:95% 4% 92% 5%/4% 95% 6% 95%;
     box-shadow: 2px 3px 12px black, 0 0 4px #8a4d0f inset;
     font-family: Shadows Into Light, serif;
-    
 }
 
 #enter {
