@@ -12,9 +12,12 @@ function startTimer(duration, element, isIndex, user) {
 function stopTimer(id, timeRemaining, element, isIndex, userCode) {
     if (timeRemaining < 0) {
         clearInterval(id);
-        element.hide();
         startGame = true;
-        if (isIndex)
+        if (isIndex) {
+            element.hide();
             window.location.replace("http://127.0.0.1:5000/play/" + userCode);
+        }
+        else
+            element.html("First to 5 points wins!")
     }
 }

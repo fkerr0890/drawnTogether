@@ -5,7 +5,6 @@ Daniel Beidelschies
 Radu Lungu
 """
 
-import json
 import math
 import random
 
@@ -69,7 +68,7 @@ def handleSendCanvas(msg):
 def play(user_code):
     # Querying the database for various state variables
     user = User.query.filter_by(userCode=user_code).first()
-    # user.inGame = True
+    user.inGame = True
     db.session.commit()
     base_team = math.floor(user.team / 2) * 2
     team1 = User.query.filter_by(team=base_team)
@@ -104,39 +103,54 @@ def play(user_code):
 # App endpoint to expose the lobby page
 @app.route('/')
 def lobby():
-    return render_template("index.html", users=User.query.filter_by(inGame=False))
+    base_team = Data.query.get('incomplete')
+    if base_team is not None:
+        base_team = int(base_team.value)
+        users = User.query.filter((User.team == base_team) | (User.team == base_team + 1)).all()
+    else:
+        users = []
+    return render_template("index.html", users=users)
 
 
 # Socket.io function to handle new users joining the game
 @socketio.on('joinUsername')
 def receive_username(msg):
-    user_count = User.query.count()
+    print("Message received")
+    if Data.query.get('incomplete') is None:
+        base_team = math.floor(random.randint(0, 1000000) / 2) * 2
+        print(str(base_team))
+        while User.query.filter_by(team=base_team).count() > 0:
+            print(str(User.query.filter_by(team=base_team).count()))
+            base_team = math.floor(random.randint(0, 1000000) / 2) * 2
+        user_count = 0
+        db.session.add(Data(type='incomplete', value=str(base_team)))
+        db.session.commit()
+    else:
+        base_team = int(Data.query.get('incomplete').value)
+        user_count = User.query.filter((User.team == base_team) | (User.team == base_team + 1)).count()
     try:
         # Check that the user is not in the database already, according to sid
         if User.query.filter_by(id=request.sid).first() is None:
 
             # Add user to database based on teams lenght
-            base_team = math.floor(user_count / 8) * 2
-            if User.query.filter_by(team=base_team).count() <= User.query.filter_by(team=base_team+1).count():
+            if User.query.filter_by(team=base_team).count() <= User.query.filter_by(team=base_team + 1).count():
                 team = base_team
             else:
-                team = base_team+1
+                team = base_team + 1
             print("User code; " + msg['userCode'])
             add_teamMember(team, msg['username'], msg['userCode'])
             emit('message', {'username': msg['username'], 'team': team}, broadcast=True)
 
             # If there are more than 4 users, start the game and move all users to the play room.
             user_count += 1
-            if user_count % 4 == 0:
-                if user_count % 8 == 0:
-                    for user in User.query.all():
-                        user.inGame = True
-                    db.session.commit()
-                    emit('max_users_reached', str(user_count), broadcast=True)
-                    send("startGameMessage", to=request.sid, broadcast=False)
-                else:
-                    send("startGameMessage", broadcast=True)
-            elif user_count % 8 > 4:
+            if user_count == 4:
+                send("startGameMessage", broadcast=True)
+            elif user_count == 8:
+                db.session.delete(Data.query.get('incomplete'))
+                db.session.commit()
+                emit('max_users_reached', str(user_count), broadcast=True)
+                send("startGameMessage", to=request.sid, broadcast=False)
+            elif user_count > 4:
                 send("startGameMessage", to=request.sid, broadcast=False)
         else:
             send("userErrorMessage")
@@ -171,29 +185,29 @@ def get_random_noun():
 # Socket.io function to handle the guessing logic
 @socketio.on('guess')
 def validate_guess(msg):
-    # Query the database for the current word to guess
-    existing_word = Data.query.get('baseTeam' + str(math.floor(msg['team'] / 2) * 2) + '_word').value
-    # If the team guess is equal to the word in the database
-    if msg['guess'].casefold() == existing_word.casefold():
-        # Reset the word and update score
-        reset(msg['team'])
-        score = updateScore(msg['team'])
-
-        # If score is 5 then restart the game
-        base_team = math.floor(msg['team'] / 2) * 2
-        if score == 5:
-            delete_users(base_team)
-            emit('message', 'reset', room=str(base_team))
-            emit('message', 'reset', room=str(base_team + 1))
+    base_team = math.floor(msg['team'] / 2) * 2
+    if msg['guess'] != 'give_up':
+        # Query the database for the current word to guess
+        print("Base team: " + str(base_team))
+        existing_word = Data.query.get('baseTeam' + str(base_team) + '_word').value
+        # If the team guess is equal to the word in the database
+        if msg['guess'].casefold() == existing_word.casefold():
+            # Reset the word and update score
+            reset(msg['team'])
+            updateScore(msg['team'], base_team)
+    else:
+        if msg['team'] == base_team:
+            team = base_team+1
         else:
-            emit('message', 'game_over', room=str(base_team))
-            emit('message', 'game_over', room=str(base_team + 1))
+            team = base_team
+        reset(team)
+        updateScore(team, base_team)
 
 
 # Function to update score based on the team
-def updateScore(team):
+def updateScore(team, base_team):
     data_type = 'team' + str(team) + '_score'
-    if Data.query.filter_by(type=data_type).first() is None:
+    if Data.query.get(data_type) is None:
         db.session.add(Data(type=data_type, value="1"))
         score = '1'
     else:
@@ -201,7 +215,16 @@ def updateScore(team):
         existing_score.value = str(int(existing_score.value) + 1)
         score = existing_score.value
     db.session.commit()
-    return int(score)
+    score = int(score)
+    # If score is 5 then restart the game
+    if score == 5:
+        delete_users(base_team)
+        team = str(team % 2 + 1)
+        emit('message', 'reset' + team, room=str(base_team))
+        emit('message', 'reset' + team, room=str(base_team + 1))
+    else:
+        emit('message', 'game_over', room=str(base_team))
+        emit('message', 'game_over', room=str(base_team + 1))
 
 
 # Function to reset the word to guess in the database
@@ -215,8 +238,13 @@ def reset(team):
 def delete_users(base_team):
     for user in User.query.filter((User.team == base_team) | (User.team == base_team + 1)).all():
         db.session.delete(user)
-    for item in Data.query.all():
-        db.session.delete(item)
+        emit('delete_user', user.username, broadcast=True)
+    score1 = Data.query.get('team' + str(base_team) + '_score')
+    score2 = Data.query.get('team' + str(base_team + 1) + '_score')
+    if score1 is not None:
+        db.session.delete(score1)
+    if score2 is not None:
+        db.session.delete(score2)
     db.session.commit()
 
 
@@ -228,6 +256,7 @@ def delete_user(msg):
     db.session.commit()
     base_team = math.floor(user.team / 2) * 2
     emit('delete_user', msg, broadcast=True)
+    print("Drawer: " + str(user.drawer) + " in game: " + str(user.inGame))
     if user.drawer and user.inGame:
         delete_users(base_team)
         emit('message', 'force_reset', room=str(base_team))

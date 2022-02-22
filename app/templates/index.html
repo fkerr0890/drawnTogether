@@ -7,22 +7,22 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
-    <body id="lobbybody" onbeforeunload="alert('function alrt WORKS !!!!')">
+    <body id="lobbybody">
         <div class="container">
             <h1 id="lobby">Drawn Together</h1>
-            <ul id="userList1">Team 1
+            <ul id="userList1">Team 1 (max 4 players)
                 {% for user in users %}
                     {% if user.team % 2 == 0 %}<li class="team_list_item">{{ user.username }}</li>{% endif %}
                 {% endfor %}
             </ul>
-            <ul id="userList2">Team 2
+            <ul id="userList2">Team 2 (max 4 players)
                 {% for user in users %}
                     {% if user.team % 2 == 1 %}<li>{{ user.username }}</li>{% endif %}
                 {% endfor %}
             </ul>
             <input type="text" id="username">
             <button id="joinTeam">Join Room</button>
-            <h1 class="countdown_text"></h1>
+            <h1 class="countdown_text">4 players required to start</h1>
         </div>
 
         <script type="text/javascript">
@@ -33,11 +33,11 @@
                 let userCode = Date.now().toString();
                 let username = $('#username');
                 let countdownText = $('.countdown_text');
-                countdownText.hide();
 
                 const beforeUnloadListener = (event) => {
                     event.preventDefault();
-                    lobby_socket.emit('delete_user', user);
+                    if (user !== '')
+                        lobby_socket.emit('delete_user', user);
                     //return event.returnValue = "";
                 };
 
@@ -50,14 +50,13 @@
                 lobby_socket.on('message', function(msg) {
                     //When there are more than 4 users, redirect all users to the play room
                     if (msg === "startGameMessage"){
-                        if ($("li").length > 4)
-                            countdownText.html("Joining existing game in ");
-                        else
-                            countdownText.html("Entering game in ");
-                        console.log("Start game")
                         if (user !== '') {
+                            if ($("li").length > 4)
+                                countdownText.html("Joining existing game in ");
+                            else
+                                countdownText.html("Entering game in ");
+                            console.log("Start game")
                             lobby_socket.disconnect();
-                            countdownText.show();
                             startTimer(3, countdownText, true, userCode);
                         }
 
@@ -84,10 +83,10 @@
                 lobby_socket.on('max_users_reached', (msg) => {
                     let user_count = parseInt(msg)
                     for (let i=0; i < user_count/2; i++) {
-                        $("#userList1 li:nth-child(1)").remove()
+                        $("#userList1 li:nth-child(1)").remove();
                     }
                     for (let i=0; i < user_count/2; i++) {
-                        $("#userList2 li:nth-child(1)").remove()
+                        $("#userList2 li:nth-child(1)").remove();
                     }
                 });
 
@@ -103,7 +102,7 @@
                     if (username.val() !== '') {
                         lobby_socket.emit('joinUsername', {'userCode': userCode, 'username': username.val()});
                     }else{
-                        alert('Your username cannot be empty')
+                        alert('Your username cannot be empty');
                     }
                 }
 
@@ -113,13 +112,14 @@
                 input.addEventListener("keyup", function(event) {
                   // Number 13 is the "Enter" key on the keyboard
                   if (event.keyCode === 13) {
-                      send_username()
+                      send_username();
                       }
                    });
 
                 // Send username on click
                 $('#joinTeam').on('click', function (){
-                    send_username()
+                    console.log("Click");
+                    send_username();
                 });
             });
         </script>

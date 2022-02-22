@@ -21,11 +21,12 @@
                 let performanceEntries = performance.getEntriesByType("navigation");
                 const drawer = "{{ drawer }}";
                 if (performanceEntries[performanceEntries.length-1].type !== "reload") {
-                    startTimer(5, $('.countdown_text'), false, null);
+                    let countdownText = $('.countdown_text')
+                    countdownText.html("Round starting in ");
+                    startTimer(5, countdownText, false, null);
                     setup(drawer);
                 }
                 else if (drawer === "False") {
-                    $('.countdown_text').hide();
                     startGame = true;
                     setup(drawer);
                 }
@@ -41,7 +42,7 @@
                 let array = [];
                 socket.on('message', (msg) => {
                     if (msg !== 'startGameMessage') {
-                        if (msg !== 'game_over' && msg !== 'reset' && msg !== 'force_reset') {
+                        if (msg !== 'game_over' && (typeof msg === "string" && msg.substring(0,msg.length-1)) !== 'reset' && msg !== 'force_reset') {
                             if (msg.username !== undefined && msg.team !== undefined) {
                                 if (Math.floor(msg.team / 2) === Math.floor(({{ team }}) / 2)) {
                                     let li = document.createElement("li");
@@ -81,6 +82,8 @@
                                 socket.disconnect()
                                 if (msg === 'force_reset')
                                     alert("There are not enough players remaining to continue")
+                                else
+                                    alert("Team "+msg.substring(msg.length-1)+" wins!")
                                 setTimeout(function () {
                                     window.location.replace("http://127.0.0.1:5000/");
                                 }, 1000);
@@ -220,17 +223,18 @@
                 <h1 id="title">Drawn Together</h1>
                 <h2 id="role">{% if drawer == true %} Word to draw: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
                 <canvas id="can" width="800" height="500" ></canvas>
-                <h1 class="countdown_text">Round starting in </h1>
-                <div style="position:absolute;top:12%;left:87%;">Choose Color</div>
-                <div style="position:absolute;top:15%;left:87%;width:10px;height:10px;background:green;border:1px solid;" id="green" onclick="x='green'; y=2"></div>
-                <div style="position:absolute;top:15%;left:89%;width:10px;height:10px;background:blue;border:1px solid;" id="blue" onclick="x='blue'; y=2"></div>
-                <div style="position:absolute;top:15%;left:91%;width:10px;height:10px;background:red;border:1px solid;" id="red" onclick="x='red'; y=2"></div>
-                <div style="position:absolute;top:18%;left:87%;width:10px;height:10px;background:yellow;border:1px solid;" id="yellow" onclick="x='yellow'; y=2"></div>
-                <div style="position:absolute;top:18%;left:89%;width:10px;height:10px;background:orange;border:1px solid;" id="orange" onclick="x='orange'; y=2"></div>
-                <div style="position:absolute;top:18%;left:91%;width:10px;height:10px;background:black;border:1px solid;" id="black" onclick="x='black'; y=2"></div>
-                <div style="position:absolute;top:20%;left:88%;">Eraser</div>
-                <div style="position:absolute;top:23%;left:89%;width:13px;height:13px;background:white;border:2px solid;" id="white" onclick="x='white'; y=28"></div>
-
+                <h1 class="countdown_text">First to 5 points wins!</h1>
+                <div id="color_picker">
+                    <div style="grid-row: 1; grid-column: 1 / span 3">Choose color</div>
+                    <div class="color" id="green" style="grid-row: 2; grid-column: 1; background: green" onclick="x='green'; y=2"></div>
+                    <div class="color" id="blue" style="grid-row: 2; grid-column: 2; background: blue" onclick="x='blue'; y=2"></div>
+                    <div class="color" id="red" style="grid-row: 2; grid-column: 3; background: red" onclick="x='red'; y=2"></div>
+                    <div class="color" id="yellow" style="grid-row: 3; grid-column: 1; background: yellow" onclick="x='yellow'; y=2"></div>
+                    <div class="color" id="orange" style="grid-row: 3; grid-column: 2; background: orange" onclick="x='orange'; y=2"></div>
+                    <div class="color" id="black" style="grid-row: 3; grid-column: 3; background: black" onclick="x='black'; y=2"></div>
+                    <div style="grid-row: 4; grid-column: 1 / span 2">Eraser:</div>
+                    <div class="color" id="white" style="grid-row: 4; grid-column: 3; background: white" onclick="x='white'; y=35"></div>
+                </div>
                 <!-- Add users and scores to their specific teams -->
                 {% if drawer == false %}
                     <label id="labeldraw">
@@ -238,6 +242,7 @@
                         <input id="answer" type="text" name="guess_input">
                     </label>
                     <button id="enter" type="submit">Enter</button>
+                    <button id="give_up">Give up</button>
                 {% endif %}
                 <div id = "team1">
                     Team 1
@@ -292,6 +297,11 @@
                 // Send guess on click
                 $('#enter').on('click', function () {
                    send_guess()
+                });
+
+                $('#give_up').on('click', function () {
+                    if (startGame)
+                        socket.emit('guess', {'guess': 'give_up', 'team': {{ team }}});
                 });
 
             </script>
