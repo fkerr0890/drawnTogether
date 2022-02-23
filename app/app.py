@@ -125,7 +125,6 @@ def receive_username(msg):
                 team = base_team
             else:
                 team = base_team + 1
-            print("User code; " + msg['userCode'])
             add_teamMember(team, msg['username'], msg['userCode'])
             emit('message', {'username': msg['username'], 'team': team}, broadcast=True)
 
@@ -149,9 +148,7 @@ def receive_username(msg):
 def retrieve_incomplete_team():
     if Data.query.get('incomplete') is None:
         base_team = math.floor(random.randint(0, 1000000) / 2) * 2
-        print(str(base_team))
         while User.query.filter_by(team=base_team).count() > 0:
-            print(str(User.query.filter_by(team=base_team).count()))
             base_team = math.floor(random.randint(0, 1000000) / 2) * 2
         user_count = 0
         db.session.add(Data(type='incomplete', value=str(base_team)))
@@ -192,7 +189,6 @@ def validate_guess(msg):
     base_team = math.floor(msg['team'] / 2) * 2
     if msg['guess'] != 'give_up':
         # Query the database for the current word to guess
-        print("Base team: " + str(base_team))
         existing_word = Data.query.get('baseTeam' + str(base_team) + '_word').value
         # If the team guess is equal to the word in the database
         if msg['guess'].casefold() == existing_word.casefold():
@@ -263,7 +259,6 @@ def delete_user(msg):
     db.session.commit()
     base_team = math.floor(user.team / 2) * 2
     emit('delete_user', msg, broadcast=True)
-    print("Drawer: " + str(user.drawer) + " in game: " + str(user.inGame))
     if user.drawer and user.inGame:
         delete_users(base_team)
         emit('message', 'force_reset', room=str(base_team))

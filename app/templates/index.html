@@ -57,7 +57,6 @@
                                 countdownText.html("Joining existing game in ");
                             else
                                 countdownText.html("Entering game in ");
-                            console.log("Start game");
                             lobby_socket.disconnect();
                             playUrl = "{{ url_for('play', user_code=userCode) }}";
                             startTimer(3, countdownText, true, userCode);
@@ -121,7 +120,6 @@
 
                 // Send username on click
                 $('#joinTeam').on('click', function (){
-                    console.log("Click");
                     send_username();
                 });
             });

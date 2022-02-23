@@ -57,7 +57,6 @@
                                     }
                                 }
                             } else if (msg.color === undefined || msg.lineWidth === undefined) {
-                                console.log("Im Here");
                                 if (drawer === "True")
                                     debugger;
                                 let data = msg.data;
@@ -69,7 +68,6 @@
                                     } else
                                         array.push(data[x]);
                                 }
-                                console.log("Done");
                                 if (array.length !== 0)
                                     ctx.putImageData(new ImageData(Uint8ClampedArray.from(array), w), 0, 0);
                             } else {
