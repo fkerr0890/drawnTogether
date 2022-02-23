@@ -26,9 +26,11 @@
         </div>
 
         <script type="text/javascript">
+            const indexUrl = "{{ url_for('lobby') }}";
+            let playUrl;
             // Connect to the websocket when the webpage loads
             $(document).ready(function() {
-                var lobby_socket = io.connect('http://127.0.0.1:5000');
+                let lobby_socket = io.connect(indexUrl);
                 let user = '';
                 let userCode = (Math.floor(Math.random() * 99999999) + 1).toString();
                 let username = $('#username');
@@ -55,8 +57,9 @@
                                 countdownText.html("Joining existing game in ");
                             else
                                 countdownText.html("Entering game in ");
-                            console.log("Start game")
+                            console.log("Start game");
                             lobby_socket.disconnect();
+                            playUrl = "{{ url_for('play', user_code=userCode) }}";
                             startTimer(3, countdownText, true, userCode);
                         }
 
@@ -67,7 +70,7 @@
 
                         //Add user to the team
                     } else if (msg.username !== undefined) {
-                        var li = document.createElement("li");
+                        let li = document.createElement("li");
                         li.appendChild(document.createTextNode(msg.username));
                         if (user === '')
                             user = username.val();
@@ -106,7 +109,7 @@
                     }
                 }
 
-                var input = document.getElementById("username");
+                let input = document.getElementById("username");
 
                 // Send username when pressing enter
                 input.addEventListener("keyup", function(event) {

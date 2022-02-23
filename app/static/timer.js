@@ -15,7 +15,7 @@ function stopTimer(id, timeRemaining, element, isIndex, userCode) {
         startGame = true;
         if (isIndex) {
             element.hide();
-            window.location.replace("http://127.0.0.1:5000/play/" + userCode);
+            window.location.replace(playUrl + userCode);
         }
         else
             element.html("First to 5 points wins!")

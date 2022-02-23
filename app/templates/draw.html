@@ -5,19 +5,22 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
         <script src="../static/timer.js"></script>
         <script type="text/javascript">
-            var socket, canvas, ctx, flag = false,
+            let socket, canvas, ctx, flag = false,
                 prevX = 0,
                 currX = 0,
                 prevY = 0,
                 currY = 0,
                 dot_flag = false;
-            var x = "black",
+            let x = "black",
                 y = 2;
+            let w, h;
 
             let startGame = false;
+            const indexUrl = "{{ url_for('lobby') }}";
+            const thisUrl = "{{ url_for('play', user_code=user_code) }}";
             // Connect to socket and send users to specific rooms when the page loads
             function init() {
-                socket = io.connect('http://127.0.0.1:5000');
+                socket = io.connect(indexUrl);
                 let performanceEntries = performance.getEntriesByType("navigation");
                 const drawer = "{{ drawer }}";
                 if (performanceEntries[performanceEntries.length-1].type !== "reload") {
@@ -34,7 +37,7 @@
                     socket.emit('delete_user', "{{ username }}");
                     alert("You have been removed from the game");
                     setTimeout(function () {
-                        window.location.replace("http://127.0.0.1:5000/");
+                        window.location.replace(indexUrl);
                     },1000);
                 }
 
@@ -77,7 +80,7 @@
                         } else {
                             if (msg === 'game_over') {
                                 //alert("You guessed the word");
-                                window.location.replace("http://127.0.0.1:5000/play/" + "{{ user_code }}");
+                                window.location.replace(thisUrl);
                             } else {
                                 socket.disconnect()
                                 if (msg === 'force_reset')
@@ -85,7 +88,7 @@
                                 else
                                     alert("Team "+msg.substring(msg.length-1)+" wins!")
                                 setTimeout(function () {
-                                    window.location.replace("http://127.0.0.1:5000/");
+                                    window.location.replace(indexUrl);
                                 }, 1000);
                             }
                         }
@@ -297,13 +300,15 @@
                 });*/
 
                 let input = document.getElementById("answer");
-                // Send guess when pressing Enter
-                input.addEventListener("keyup", function(event) {
-                    // Number 13 is the "Enter" key on the keyboard
-                    if (event.keyCode === 13) {
-                        send_guess()
-                    }
-                });
+                if (input != null) {
+                    // Send guess when pressing Enter
+                    input.addEventListener("keyup", function (event) {
+                        // Number 13 is the "Enter" key on the keyboard
+                        if (event.keyCode === 13) {
+                            send_guess()
+                        }
+                    });
+                }
 
                 // Send guess on click
                 $('#enter').on('click', function () {
