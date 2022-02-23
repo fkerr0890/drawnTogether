@@ -1,1 +1,1 @@
-web: gunicorn --chdir app app:app
+web: gunicorn --chdir app --worker-class eventlet -w 1 app:app
