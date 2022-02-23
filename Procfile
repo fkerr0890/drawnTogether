@@ -1,1 +1,1 @@
-web: gunicorn --chdir app --worker-class eventlet -w 1 app:app
+web: gunicorn --chdir app --worker-class gevent-websocket app:app
