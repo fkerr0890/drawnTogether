@@ -1,1 +1,1 @@
-web: gunicorn --chdir app --worker-class gevent-websocket app:app
+web: gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 module:app app:app
