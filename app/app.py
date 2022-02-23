@@ -103,6 +103,10 @@ def play(user_code):
 # App endpoint to expose the lobby page
 @app.route('/')
 def lobby():
+    try:
+        User.query.all()
+    except sqlalchemy.exc.OperationalError:
+        db.create_all()
     base_team = Data.query.get('incomplete')
     if base_team is not None:
         base_team = int(base_team.value)
@@ -266,8 +270,4 @@ def delete_user(msg):
 
 
 if __name__ == '__main__':
-    # try:
-    #     User.query.all()
-    # except sqlalchemy.exc.OperationalError:
-    db.create_all()
     socketio.run(app)
