@@ -271,4 +271,8 @@ def delete_user(msg):
 
 
 if __name__ == '__main__':
+    try:
+        User.query.all()
+    except sqlalchemy.exc.OperationalError:
+        db.create_all()
     socketio.run(app)
