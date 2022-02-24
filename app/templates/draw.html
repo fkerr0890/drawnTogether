@@ -38,9 +38,7 @@
                 else {
                     socket.emit('delete_user', "{{ username }}");
                     alert("You have been removed from the game");
-                    setTimeout(function () {
-                        window.location.replace(indexUrl);
-                    },1000);
+                    window.location.replace(indexUrl);
                 }
 
                 // Share the information of the canvas across rooms, end the round and end the game
@@ -87,9 +85,7 @@
                                     alert("There are not enough players remaining to continue")
                                 else
                                     alert("Team "+msg.substring(msg.length-1)+" wins!")
-                                setTimeout(function () {
-                                    window.location.replace(indexUrl);
-                                }, 1000);
+                                window.location.replace(indexUrl);
                             }
                         }
                     }
