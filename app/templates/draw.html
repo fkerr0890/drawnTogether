@@ -3,8 +3,10 @@
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js" async></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
         <script src="../static/timer.js"></script>
         <script>
             let socket, canvas, ctx, flag = false,
@@ -37,8 +39,11 @@
                 }
                 else {
                     socket.emit('delete_user', "{{ username }}");
-                    alert("You have been removed from the game");
-                    window.location.replace(indexUrl);
+                    let dialogFunction = function () {
+                        window.location.replace(indexUrl);
+                        $( this ).dialog( "close" );
+                    };
+                    createDialog("Alert","You have been removed from the game",dialogFunction);
                 }
 
                 // Share the information of the canvas across rooms, end the round and end the game
@@ -78,15 +83,15 @@
                             }
                         } else {
                             if (msg === 'game_over') {
-                                //alert("You guessed the word");
                                 window.location.replace(thisUrl);
                             } else {
                                 socket.disconnect()
+                                let dialogText;
                                 if (msg === 'force_reset')
-                                    alert("There are not enough players remaining to continue")
+                                    dialogText = "There are not enough players remaining to continue";
                                 else
-                                    alert("Team "+msg.substring(msg.length-1)+" wins!")
-                                window.location.replace(indexUrl);
+                                    dialogText = "Team "+msg.substring(msg.length-1)+" wins!";
+                                createDialog("Message",dialogText);
                             }
                         }
                     }
@@ -135,6 +140,23 @@
                         findxy('out', e)
                     }, false);
                 }
+            }
+
+            function createDialog(title, text) {
+                return $("<div class='dialog' title='" + title + "'><p>" + text + "</p></div>").dialog({
+                    dialogClass: "no-close",
+                    resizable: false,
+                    modal: true,
+                    buttons: [
+                        {
+                            text: "OK",
+                            click: function() {
+                                window.location.replace(indexUrl);
+                                $( this ).dialog( "close" );
+                            }
+                        }
+                    ]
+                });
             }
 
             async function sendCanvas(data,to_user) {
