@@ -89,8 +89,8 @@ def play(user_code):
 
     # Render the html template with the above state variables
     return render_template("draw.html",
-                           team1=team1,
-                           team2=team2,
+                           team1=team1.all(),
+                           team2=team2.all(),
                            username=user.username,
                            user_code=user_code,
                            drawer=user.drawer,

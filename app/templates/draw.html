@@ -26,7 +26,7 @@
                 let performanceEntries = performance.getEntriesByType("navigation");
                 const drawer = "{{ drawer }}";
                 if (performanceEntries[performanceEntries.length-1].type !== "reload") {
-                    let countdownText = $('.countdown_text')
+                    let countdownText = $('.countdown_text');
                     countdownText.html("Round starting in ");
                     startTimer(5, countdownText, false, null);
                     setup(drawer);
@@ -57,8 +57,8 @@
                                     }
                                 }
                             } else if (msg.color === undefined || msg.lineWidth === undefined) {
-                                if (drawer === "True")
-                                    debugger;
+                                timeRemaining = -4;
+                                $('.countdown_text').html("First to 5 points wins!");
                                 let data = msg.data;
                                 for (let x = 0; x < data.length; x++) {
                                     if (data[x] < 0) {
@@ -96,7 +96,7 @@
                 }
 
                 socket.on('load_canvas', (msg) => {
-                    if (drawer === "True") {
+                    if (drawer === "True" && startGame) {
                         const data = ctx.getImageData(0,0, w, h).data;
                         sendCanvas(data,msg);
                     }
