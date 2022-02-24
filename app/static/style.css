@@ -6,13 +6,12 @@
     font-size: 20px;
     box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
     background: rgb(255, 255, 255);
-    filter: url(#wavy2);
 }
-.container{
+#container{
     display: grid;
-    grid-template-columns: 19em 19em 19em 19em ;
-    grid-template-rows: 11em 18em 2em;
-    font-family: Shadows Into Light, serif;
+    grid-template-columns: 19em 19em 19em 19em;
+    grid-template-rows: 11em 18em fit-content(11em);
+    font-family: "Shadows Into Light", serif;
 }
 #username,#joinTeam {
     background-color: white;
@@ -21,14 +20,14 @@
 }
 #username{
     width: 11em;
-    height: 2.25em;
+    height: 2em;
 }
 
 #joinTeam{
     width: 5em;
-    height: 2.25em;
-    margin-left: 11em;
-    font-family: Shadows Into Light, serif;
+    height: 2.5em;
+    margin-left: 12em;
+    font-family: "Shadows Into Light", serif;
 }
 #userList1 {
     border-radius:95% 4% 92% 5%/4% 95% 6% 95%;
@@ -57,24 +56,21 @@
     grid-column: 2 / 5;
     margin-left: 1.75em;
     grid-row: 1;
-    font-family: Shadows Into Light, serif;
+    font-family: "Shadows Into Light", serif;
 }
 #drawBody{
-    font-family: Shadows Into Light, serif;
+    font-family: "Shadows Into Light", serif;
     font-size: 18px;
-/*    display: flex;
-    justify-items: center;*/
     width: fit-content;
     padding-right: 10em;
     height: auto;
     box-shadow: 2px 3px 20px black, 0 0 60px #8a4d0f inset;
     background: rgb(255, 255, 255);
-    filter: url(#wavy2);
 }
-.container2 {
+#container2 {
     display: grid;
-    grid-template-columns: fit-content(5em) fit-content(50em) fit-content(20em);
-    grid-template-rows:  3em 27em 2em;
+    grid-template-columns: fit-content(5em) fit-content(50em) fit-content(20em) fit-content(20em);
+    grid-template-rows:  3em 27em fit-content(11em);
     gap: 2em;
 }
 #role{
@@ -96,7 +92,7 @@
 .countdown_text {
     grid-row: 3;
     grid-column: 2 / span 2;
-    margin: 10% auto;
+    margin: 2em auto;
     color: cornflowerblue;
 }
 
@@ -137,8 +133,9 @@
     height: 11em;
 }
 #guess_list {
+    margin-left: 5em;
     grid-column: 4;
-    grid-row: 3;
+    grid-row: 2;
     align-self: end;
 }
 
@@ -164,11 +161,10 @@
 
 #enter, #give_up{
     height: 2.5em;
-    margin-top: .25em;
     border:2px solid;
     border-radius:95% 4% 92% 5%/4% 95% 6% 95%;
     box-shadow: 2px 3px 12px black, 0 0 4px #8a4d0f inset;
-    font-family: Shadows Into Light, serif;
+    font-family: "Shadows Into Light", serif;
 }
 
 #enter {
@@ -179,10 +175,11 @@
 }
 
 #give_up {
+    margin-top: 5em;
     margin-left: 4.5em;
     margin-right: 5em;
     width: auto;
-    grid-row: 4;
+    grid-row: 3;
     grid-column: 3;
 }
 
