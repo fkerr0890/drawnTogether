@@ -57,6 +57,7 @@
                                     }
                                 }
                             } else if (msg.color === undefined || msg.lineWidth === undefined) {
+                                startGame = true;
                                 timeRemaining = -4;
                                 $('.countdown_text').html("First to 5 points wins!");
                                 let data = msg.data;
