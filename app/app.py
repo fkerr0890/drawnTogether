@@ -182,8 +182,6 @@ def retrieve_incomplete_team():
 @socketio.on('join_room')
 def add_to_room(msg):
     user = User.query.get(msg['username'])
-    if user.cached:
-        user.cached = False
     if msg['rejoin'] == "True":
         emit('message', {'username': msg['username'], 'team': msg['team']}, broadcast=True)
     join_room(msg['team'])

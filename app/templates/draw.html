@@ -132,10 +132,9 @@
 
             function setup(drawer) {
                 let performanceEntries = performance.getEntriesByType("navigation");
-                let rejoin = "{{ rejoin }}";
                 if (performanceEntries[performanceEntries.length-1].type === "back_forward")
-                    rejoin = "True";
-                socket.emit('join_room', {'username':"{{ username }}", 'team':"{{ team }}", 'rejoin': rejoin})
+                    location.reload()
+                socket.emit('join_room', {'username':"{{ username }}", 'team':"{{ team }}", 'rejoin':"{{ rejoin }}"})
                 canvas = document.getElementById('can');
                 ctx = canvas.getContext("2d");
                 w = canvas.width;
