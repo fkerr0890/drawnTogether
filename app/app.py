@@ -10,7 +10,7 @@ import random
 
 import sqlalchemy.exc
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, send, join_room, emit, leave_room
 
@@ -30,6 +30,7 @@ class User(db.Model):
     team = db.Column(db.Integer)
     drawer = db.Column(db.Boolean)
     inGame = db.Column(db.Boolean)
+    cached = db.Column(db.Boolean)
 
     def __repr__(self):
         return self.username
@@ -68,36 +69,45 @@ def handleSendCanvas(msg):
 def play(user_code):
     # Querying the database for various state variables
     user = User.query.filter_by(userCode=user_code).first()
-    user.inGame = True
-    db.session.commit()
-    base_team = math.floor(user.team / 2) * 2
-    team1 = User.query.filter_by(team=base_team)
-    team2 = User.query.filter_by(team=base_team + 1)
-    team1_score = Data.query.get('team' + str(base_team) + '_score')
-    team2_score = Data.query.get('team' + str(base_team + 1) + '_score')
-    team1_score = 0 if team1_score is None else team1_score
-    team2_score = 0 if team2_score is None else team2_score
-
-    # Getting a random noun from the local work bank and copying it to the database
-    try:
-        word = get_random_noun()
-        db.session.add(Data(type='baseTeam' + str(base_team) + '_word', value=word))
+    if user is None:
+        return redirect(url_for('lobby'))
+    else:
+        user.inGame = True
+        rejoin = False
+        print(user.username + " cached " + str(user.cached))
+        if user.cached:
+            user.cached = False
+            rejoin = True
         db.session.commit()
-    except sqlalchemy.exc.IntegrityError:
-        db.session.rollback()
-        word = Data.query.get('baseTeam' + str(base_team) + '_word').value
+        base_team = math.floor(user.team / 2) * 2
+        team1 = User.query.filter((User.team == base_team) & (User.cached == False))
+        team2 = User.query.filter((User.team == base_team+1) & (User.cached == False))
+        team1_score = Data.query.get('team' + str(base_team) + '_score')
+        team2_score = Data.query.get('team' + str(base_team + 1) + '_score')
+        team1_score = 0 if team1_score is None else team1_score
+        team2_score = 0 if team2_score is None else team2_score
 
-    # Render the html template with the above state variables
-    return render_template("draw.html",
-                           team1=team1.all(),
-                           team2=team2.all(),
-                           username=user.username,
-                           user_code=user_code,
-                           drawer=user.drawer,
-                           team=user.team,
-                           word_to_guess=word,
-                           team1_score=team1_score,
-                           team2_score=team2_score)
+        # Getting a random noun from the local work bank and copying it to the database
+        try:
+            word = get_random_noun()
+            db.session.add(Data(type='baseTeam' + str(base_team) + '_word', value=word))
+            db.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            db.session.rollback()
+            word = Data.query.get('baseTeam' + str(base_team) + '_word').value
+
+        # Render the html template with the above state variables
+        return render_template("draw.html",
+                               team1=team1.all(),
+                               team2=team2.all(),
+                               username=user.username,
+                               user_code=user_code,
+                               drawer=user.drawer,
+                               team=user.team,
+                               word_to_guess=word,
+                               team1_score=team1_score,
+                               team2_score=team2_score,
+                               rejoin=rejoin)
 
 
 # App endpoint to expose the lobby page
@@ -110,7 +120,8 @@ def lobby():
     base_team = Data.query.get('incomplete')
     if base_team is not None:
         base_team = int(base_team.value)
-        users = User.query.filter((User.team == base_team) | (User.team == base_team + 1)).all()
+        users = User.query.filter(((User.team == base_team) | (User.team == base_team + 1)) & (User.cached == False)).all()
+        # users = User.query.filter(((User.team == base_team) | (User.team == base_team + 1))).all()
     else:
         users = []
     return render_template("index.html", users=users)
@@ -133,20 +144,24 @@ def receive_username(msg):
             emit('message', {'username': msg['username'], 'team': team}, broadcast=True)
 
             # If there are more than 4 users, start the game and move all users to the play room.
-            user_count += 1
-            if user_count == 4:
-                send("startGameMessage", broadcast=True)
-            elif user_count == 8:
-                db.session.delete(Data.query.get('incomplete'))
-                db.session.commit()
-                emit('max_users_reached', str(user_count), broadcast=True)
-                send("startGameMessage", to=request.sid, broadcast=False)
-            elif user_count > 4:
-                send("startGameMessage", to=request.sid, broadcast=False)
+            handle_start_game(user_count)
         else:
             send("userErrorMessage")
     except sqlalchemy.exc.IntegrityError:
         send("userErrorMessage")
+
+
+def handle_start_game(user_count):
+    user_count += 1
+    if user_count == 4:
+        send("startGameMessage", broadcast=True)
+    elif user_count == 8:
+        db.session.delete(Data.query.get('incomplete'))
+        db.session.commit()
+        emit('max_users_reached', str(user_count), broadcast=True)
+        send("startGameMessage", to=request.sid, broadcast=False)
+    elif user_count > 4:
+        send("startGameMessage", to=request.sid, broadcast=False)
 
 
 def retrieve_incomplete_team():
@@ -166,17 +181,24 @@ def retrieve_incomplete_team():
 # Socket.io function to add users to specific rooms
 @socketio.on('join_room')
 def add_to_room(msg):
-    join_room(msg.get('team'))
-    User.query.get(msg.get('username')).id = request.sid
+    user = User.query.get(msg['username'])
+    if user.cached:
+        user.cached = False
+    if msg['rejoin'] == "True":
+        emit('message', {'username': msg['username'], 'team': msg['team']}, broadcast=True)
+    join_room(msg['team'])
+    user.id = request.sid
     db.session.commit()
 
 
 # Function to add users to the database
 def add_teamMember(team, username, user_code):
     if User.query.filter((User.team == team) & User.drawer).count() == 0:
-        new_user = User(id=request.sid, userCode=user_code, username=username, team=team, drawer=True, inGame=False)
+        new_user = User(id=request.sid, userCode=user_code, username=username, team=team, drawer=True, inGame=False,
+                        cached=False)
     else:
-        new_user = User(id=request.sid, userCode=user_code, username=username, team=team, drawer=False, inGame=False)
+        new_user = User(id=request.sid, userCode=user_code, username=username, team=team, drawer=False, inGame=False,
+                        cached=False)
     db.session.add(new_user)
     db.session.commit()
 
@@ -257,12 +279,17 @@ def delete_users(base_team):
 
 @socketio.on('delete_user')
 def delete_user(msg):
-    user = User.query.get(msg)
+    print("Username to be deleted:" + msg['username'])
+    user = User.query.get(msg['username'])
     leave_room(str(user.team))
-    db.session.delete(user)
+    if msg['permanent'] == 'True':
+        db.session.delete(user)
+    else:
+        user.cached = True
+        print(msg['username'] + " cached " + str(user.cached))
     db.session.commit()
     base_team = math.floor(user.team / 2) * 2
-    emit('delete_user', msg, broadcast=True)
+    emit('delete_user', msg['username'], broadcast=True)
     if user.drawer and user.inGame:
         delete_users(base_team)
         emit('message', 'force_reset', room=str(base_team))

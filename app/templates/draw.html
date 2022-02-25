@@ -20,6 +20,7 @@
             let w, h;
 
             let startGame = false;
+            let transitioning = false;
             const indexUrl = "{{ url_for('lobby') }}";
             const thisUrl = "{{ url_for('play', user_code=user_code) }}";
             // Connect to socket and send users to specific rooms when the page loads
@@ -37,14 +38,6 @@
                     startGame = true;
                     setup(drawer);
                 }
-                else {
-                    socket.emit('delete_user', "{{ username }}");
-                    let dialogFunction = function () {
-                        window.location.replace(indexUrl);
-                        $( this ).dialog( "close" );
-                    };
-                    createDialog("Alert","You have been removed from the game",dialogFunction);
-                }
 
                 // Share the information of the canvas across rooms, end the round and end the game
                 let array = [];
@@ -52,7 +45,7 @@
                     if (msg !== 'startGameMessage') {
                         if (msg !== 'game_over' && (typeof msg === "string" && msg.substring(0,msg.length-1)) !== 'reset' && msg !== 'force_reset') {
                             if (msg.username !== undefined && msg.team !== undefined) {
-                                if (Math.floor(msg.team / 2) === Math.floor(({{ team }}) / 2)) {
+                                if (Math.floor(msg.team / 2) === Math.floor(({{ team }}) / 2) && "{{ username }}" !== msg.username) {
                                     let li = document.createElement("li");
                                     li.appendChild(document.createTextNode(msg.username));
                                     if (msg.team % 2 === 0) {
@@ -82,6 +75,7 @@
                                 draw(msg.x1, msg.y1, msg.x2, msg.y2, true);
                             }
                         } else {
+                            transitioning = true;
                             if (msg === 'game_over') {
                                 window.location.replace(thisUrl);
                             } else {
@@ -116,10 +110,32 @@
                         guess_list.children().first().remove();
                     guess_list.append(li);
                 });
+
+                socket.on('delete_user', (msg) => {
+                    $("#team1_list,#team2_list").children().each(function() {
+                       if ($(this).html() === msg)
+                           $(this).remove();
+                    });
+                });
+
+                const beforeUnloadListener = () => {
+                    if (!transitioning) {
+                        if ("{{ drawer }}" === "True") {
+                            socket.emit('delete_user', {'username': '{{ username }}', 'permanent': 'True'});
+                            createDialog("Alert", "You have been removed from the game");
+                        } else
+                            socket.emit('delete_user', {'username': '{{ username }}', 'permanent': 'False'});
+                    }
+                };
+                window.addEventListener("beforeunload", beforeUnloadListener, {capture: true});
             }
 
             function setup(drawer) {
-                socket.emit('join_room', {'username':"{{ username }}", 'team':"{{ team }}"})
+                let performanceEntries = performance.getEntriesByType("navigation");
+                let rejoin = "{{ rejoin }}";
+                if (performanceEntries[performanceEntries.length-1].type === "back_forward")
+                    rejoin = "True";
+                socket.emit('join_room', {'username':"{{ username }}", 'team':"{{ team }}", 'rejoin': rejoin})
                 canvas = document.getElementById('can');
                 ctx = canvas.getContext("2d");
                 w = canvas.width;

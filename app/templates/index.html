@@ -40,15 +40,11 @@
 
                 const beforeUnloadListener = () => {
                     if (user !== '')
-                        lobby_socket.emit('delete_user', user);
+                        lobby_socket.emit('delete_user', {'username': user, 'permanent': 'True'});
                     //return event.returnValue = "";
                 };
 
                 window.addEventListener("beforeunload", beforeUnloadListener, {capture: true});
-                /*document.addEventListener("visibilitychange", function() {
-                    if (document.visibilityState === 'hidden' && user !== '')
-                       lobby_socket.emit('delete_user', user)
-                });*/
                 // Mange application state based on the messages from receive_username function in app.py
                 lobby_socket.on('message', function(msg) {
                     //When there are more than 4 users, redirect all users to the play room
