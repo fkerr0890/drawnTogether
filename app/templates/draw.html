@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js" async></script>
@@ -38,7 +39,16 @@
                     startGame = true;
                     setup(drawer);
                 }
-
+                let correct_team = "{{ correct_team }}";
+                if (correct_team !== '') {
+                    let str;
+                    if (correct_team.substring(1,correct_team.length) === 'give_up')
+                        str = " gave up";
+                    else
+                        str = " guessed it";
+                    createDialog("Team " + correct_team.substring(0,1) + str, "Scores:/Team 1- " + {{ team1_score }}
+                        +"/Team 2- " + {{ team2_score }}, false);
+                }
                 // Share the information of the canvas across rooms, end the round and end the game
                 let array = [];
                 socket.on('message', (msg) => {
@@ -46,12 +56,19 @@
                         if (msg !== 'game_over' && (typeof msg === "string" && msg.substring(0,msg.length-1)) !== 'reset' && msg !== 'force_reset') {
                             if (msg.username !== undefined && msg.team !== undefined) {
                                 if (Math.floor(msg.team / 2) === Math.floor(({{ team }}) / 2) && "{{ username }}" !== msg.username) {
-                                    let li = document.createElement("li");
-                                    li.appendChild(document.createTextNode(msg.username));
-                                    if (msg.team % 2 === 0) {
-                                        document.getElementById('team1_list').appendChild(li);
-                                    } else {
-                                        document.getElementById('team2_list').appendChild(li);
+                                    let add = true;
+                                    $("#team1_list,#team2_list").children().each(function() {
+                                        if ($(this).html() === msg.username)
+                                            add = false;
+                                    });
+                                    if (add) {
+                                        let li = document.createElement("li");
+                                        li.appendChild(document.createTextNode(msg.username));
+                                        if (msg.team % 2 === 0) {
+                                            document.getElementById('team1_list').appendChild(li);
+                                        } else {
+                                            document.getElementById('team2_list').appendChild(li);
+                                        }
                                     }
                                 }
                             } else if (msg.color === undefined || msg.lineWidth === undefined) {
@@ -85,7 +102,7 @@
                                     dialogText = "There are not enough players remaining to continue";
                                 else
                                     dialogText = "Team "+msg.substring(msg.length-1)+" wins!";
-                                createDialog("Message",dialogText);
+                                createDialog("Message",dialogText, true);
                             }
                         }
                     }
@@ -122,7 +139,7 @@
                     if (!transitioning) {
                         if ("{{ drawer }}" === "True") {
                             socket.emit('delete_user', {'username': '{{ username }}', 'permanent': 'True'});
-                            createDialog("Alert", "You have been removed from the game");
+                            createDialog("Alert", "You have been removed from the game", false);
                         } else
                             socket.emit('delete_user', {'username': '{{ username }}', 'permanent': 'False'});
                     }
@@ -134,31 +151,38 @@
                 let performanceEntries = performance.getEntriesByType("navigation");
                 if (performanceEntries[performanceEntries.length-1].type === "back_forward")
                     location.reload()
-                socket.emit('join_room', {'username':"{{ username }}", 'team':"{{ team }}", 'rejoin':"{{ rejoin }}"})
-                canvas = document.getElementById('can');
-                ctx = canvas.getContext("2d");
-                w = canvas.width;
-                h = canvas.height;
+                else {
+                    socket.emit('join_room', {
+                        'username': "{{ username }}",
+                        'team': "{{ team }}",
+                        'rejoin': "{{ rejoin }}"
+                    })
+                    canvas = document.getElementById('can');
+                    ctx = canvas.getContext("2d");
+                    w = canvas.width;
+                    h = canvas.height;
 
-                if (drawer === "True") {
-                    // Logic to track user mouse on the canvas
-                    canvas.addEventListener("mousemove", function (e) {
-                        findxy('move', e)
-                    }, false);
-                    canvas.addEventListener("mousedown", function (e) {
-                        findxy('down', e)
-                    }, false);
-                    canvas.addEventListener("mouseup", function (e) {
-                        findxy('up', e)
-                    }, false);
-                    canvas.addEventListener("mouseout", function (e) {
-                        findxy('out', e)
-                    }, false);
+                    if (drawer === "True") {
+                        // Logic to track user mouse on the canvas
+                        canvas.addEventListener("mousemove", function (e) {
+                            findxy('move', e)
+                        }, false);
+                        canvas.addEventListener("mousedown", function (e) {
+                            findxy('down', e)
+                        }, false);
+                        canvas.addEventListener("mouseup", function (e) {
+                            findxy('up', e)
+                        }, false);
+                        canvas.addEventListener("mouseout", function (e) {
+                            findxy('out', e)
+                        }, false);
+                    }
                 }
             }
 
-            function createDialog(title, text) {
-                return $("<div class='dialog' title='" + title + "'><p>" + text + "</p></div>").dialog({
+            function createDialog(title, text, toIndex) {
+                const parts = text.split("/").map(x => x+"<br>").join('');
+                return $("<div class='dialog' title='" + title + "'><p>" + parts + "</p></div>").dialog({
                     dialogClass: "no-close",
                     resizable: false,
                     modal: true,
@@ -166,7 +190,8 @@
                         {
                             text: "OK",
                             click: function() {
-                                window.location.replace(indexUrl);
+                                if (toIndex)
+                                    window.location.replace(indexUrl);
                                 $( this ).dialog( "close" );
                             }
                         }

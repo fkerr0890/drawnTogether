@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Lobby</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
@@ -24,7 +25,13 @@
             </ul>
             <input type="text" id="username">
             <button id="joinTeam">Join</button>
-            <h1 class="countdown_text">4 players required to start</h1>
+            <h1 class="countdown_text">
+                {% if users|length >= 4 %}
+                    Enter your name to join existing game
+                {% else %}
+                    4 players required to start
+                {% endif %}
+            </h1>
         </div>
 
         <script>
@@ -77,6 +84,8 @@
                         } else {
                             document.getElementById('userList2').appendChild(li);
                         }
+                        if ($('li').length >= 4)
+                            $('.countdown_text').html('Enter your name to join existing game');
                     }
                 });
 
@@ -86,6 +95,7 @@
                         $("#userList1 li:nth-child(1)").remove();
                         $("#userList2 li:nth-child(1)").remove();
                     }
+                    $('.countdown_text').html("4 players required to start");
                 });
 
                 lobby_socket.on('delete_user', (msg) => {
@@ -93,6 +103,8 @@
                        if ($(this).html() === msg)
                            $(this).remove();
                     });
+                    if ($('li').length < 4)
+                        $('.countdown_text').html("4 players required to start");
                 });
 
                 // Function to retrieve user input and send it through the socket

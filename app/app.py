@@ -12,7 +12,7 @@ import sqlalchemy.exc
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, send, join_room, emit, leave_room
+from flask_socketio import SocketIO, send, join_room, emit, leave_room, close_room, rooms
 
 # Configuring the flask app and the SQLAlchemy database
 app = Flask(__name__)
@@ -54,7 +54,16 @@ def handleMessage(msg):
 
 @socketio.on('load_canvas')
 def handleLoadCanvas(msg):
-    emit('load_canvas', msg.get('from'), room=msg.get('team'), include_self=False)
+    team = User.query.filter((User.team == msg['team']) & (User.cached == False))
+    in_room_count = 0
+    for user in team:
+        print("User " + user.username + " rooms: " + str(rooms(user.id)))
+        if rooms(user.id).count(msg['team']) > 0:
+            in_room_count += 1
+    print("in room count: " + str(in_room_count) + ", team count: " + str(team.count()))
+    if in_room_count == team.count():
+        print("load")
+        emit('load_canvas', msg['from'], room=msg['team'], include_self=False)
 
 
 @socketio.on('send_canvas')
@@ -86,7 +95,10 @@ def play(user_code):
         team2_score = Data.query.get('team' + str(base_team + 1) + '_score')
         team1_score = 0 if team1_score is None else team1_score
         team2_score = 0 if team2_score is None else team2_score
-
+        correct_team = ''
+        print("Correct team: " + str(Data.query.get('correct_team'+str(base_team))))
+        if (x := Data.query.get('correct_team'+str(base_team))) is not None:
+            correct_team = x.value
         # Getting a random noun from the local work bank and copying it to the database
         try:
             word = get_random_noun()
@@ -107,6 +119,7 @@ def play(user_code):
                                word_to_guess=word,
                                team1_score=team1_score,
                                team2_score=team2_score,
+                               correct_team=correct_team,
                                rejoin=rejoin)
 
 
@@ -181,6 +194,7 @@ def retrieve_incomplete_team():
 # Socket.io function to add users to specific rooms
 @socketio.on('join_room')
 def add_to_room(msg):
+    print("User " + msg['username'] + " joins!")
     user = User.query.get(msg['username'])
     if msg['rejoin'] == "True":
         emit('message', {'username': msg['username'], 'team': msg['team']}, broadcast=True)
@@ -212,23 +226,30 @@ def get_random_noun():
 def validate_guess(msg):
     base_team = math.floor(msg['team'] / 2) * 2
     if msg['guess'] != 'give_up':
+        correct_team = msg['team']
         # Query the database for the current word to guess
         existing_word = Data.query.get('baseTeam' + str(base_team) + '_word').value
         # If the team guess is equal to the word in the database
         if msg['guess'].casefold() == existing_word.casefold():
             # Reset the word and update score
-            reset(msg['team'])
-            updateScore(msg['team'], base_team)
+            reset(correct_team)
+            updateScore(correct_team, base_team)
         else:
-            emit('add_word', msg['guess'], room=str(base_team))
-            emit('add_word', msg['guess'], room=str(base_team + 1))
+            emit('add_word', msg['guess'], room=str(msg['team']))
     else:
         if msg['team'] == base_team:
-            team = base_team + 1
+            correct_team = base_team + 1
         else:
-            team = base_team
-        reset(team)
-        updateScore(team, base_team)
+            correct_team = base_team
+        reset(correct_team)
+        updateScore(correct_team, base_team)
+        correct_team = msg['team']
+    existing_correct_team = Data.query.get("correct_team" + str(base_team))
+    if existing_correct_team is None:
+        db.session.add(Data(type="correct_team" + str(base_team), value=str(correct_team % 2 + 1)+msg['guess']))
+    else:
+        existing_correct_team.value = str(correct_team % 2 + 1)+msg['guess']
+    db.session.commit()
 
 
 # Function to update score based on the team
@@ -266,12 +287,12 @@ def delete_users(base_team):
     for user in User.query.filter((User.team == base_team) | (User.team == base_team + 1)).all():
         db.session.delete(user)
         emit('delete_user', user.username, broadcast=True)
-    score1 = Data.query.get('team' + str(base_team) + '_score')
-    score2 = Data.query.get('team' + str(base_team + 1) + '_score')
-    if score1 is not None:
-        db.session.delete(score1)
-    if score2 is not None:
-        db.session.delete(score2)
+    items_to_delete = [Data.query.get('team' + str(base_team) + '_score'),
+                       Data.query.get('team' + str(base_team + 1) + '_score'),
+                       Data.query.get('correct_team' + str(base_team))]
+    for item in items_to_delete:
+        if item is not None:
+            db.session.delete(item)
     db.session.commit()
 
 
@@ -292,6 +313,8 @@ def delete_user(msg):
         delete_users(base_team)
         emit('message', 'force_reset', room=str(base_team))
         emit('message', 'force_reset', room=str(base_team + 1))
+        close_room(str(base_team))
+        close_room(str(base_team + 1))
 
 
 if __name__ == '__main__':
