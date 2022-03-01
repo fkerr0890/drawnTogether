@@ -75,6 +75,7 @@
                                 startGame = true;
                                 timeRemaining = -4;
                                 $('.countdown_text').html("First to 5 points wins!");
+                                $('.dialog').dialog("close");
                                 let data = msg.data;
                                 for (let x = 0; x < data.length; x++) {
                                     if (data[x] < 0) {
@@ -123,7 +124,7 @@
                     let li = document.createElement("li");
                     li.innerHTML = msg;
                     let guess_list = $('#guess_list');
-                    if (guess_list.children().length >= 11)
+                    if (guess_list.children().length >= 10)
                         guess_list.children().first().remove();
                     guess_list.append(li);
                 });
@@ -293,8 +294,7 @@
             <div id="container2">
                 <h1 id="title">Drawn Together</h1>
                 <h2 id="role">{% if drawer == true %} Word to draw: {{word_to_guess}}  {% else %} You are the guesser {% endif %} </h2>
-                <canvas id="can" width="800" height="500" ></canvas>
-                <h1 class="countdown_text">First to 5 points wins!</h1>
+                <canvas id="can" width="800" height="500"></canvas>
                 <!-- Add users and scores to their specific teams -->
                 {% if drawer == false %}
                     <label id="labeldraw">
@@ -343,6 +343,7 @@
                     </div>
                 </div>
                 <ul id="guess_list">Guessed words:</ul>
+                <h1 id="play_countdown_text" class="countdown_text">First to 5 points wins!</h1>
             </div>
             <script>
 
