@@ -280,6 +280,20 @@ def reset(team):
     base_team = math.floor(team / 2) * 2
     word = Data.query.get('baseTeam' + str(base_team) + '_word')
     db.session.delete(word)
+    team1 = User.query.filter((User.team == base_team) & (User.cached == False)).all()
+    team2 = User.query.filter((User.team == base_team+1) & (User.cached == False)).all()
+    drawer1_index = random.randint(0, len(team1)-1)
+    drawer2_index = random.randint(0, len(team2)-1)
+    for i in range(0, len(team1)):
+        if team1[i].drawer:
+            team1[i].drawer = False
+        if i == drawer1_index:
+            team1[i].drawer = True
+    for i in range(0, len(team2)):
+        if team2[i].drawer:
+            team2[i].drawer = False
+        if i == drawer2_index:
+            team2[i].drawer = True
     db.session.commit()
 
 

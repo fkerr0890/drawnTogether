@@ -13,8 +13,8 @@
     font-family: "Shadows Into Light", serif;
 }
 
-button {
-    height: 3.5vh;
+#container button, #container2 button {
+    height: 4.5vh;
     border:0.12vw solid;
     border-radius:95% 4% 92% 5%/4% 95% 6% 95%;
     box-shadow: 0.12vw 0.35vh 1.38vh black, 0 0 0.46vh #8a4d0f inset;
