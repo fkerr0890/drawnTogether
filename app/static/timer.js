@@ -1,23 +1,46 @@
 // Start game timer functionality
 let timeRemaining;
-function startTimer(duration, element, isIndex, user) {
+let nextPage;
+let message;
+let finalMessage;
+function startTimer(duration, element, url, text, dialogText) {
+    nextPage = url;
     timeRemaining = duration;
-    element.html(element.html().substring(0, element.html().length-1) + " " + parseInt(timeRemaining,10));
+    message = text;
+    finalMessage = dialogText;
+    element.html(text + parseInt(timeRemaining,10));
+    const dialog = $('.dialog');
     let id = setInterval(function () {
         timeRemaining--;
-        stopTimer(id, timeRemaining, element, isIndex, user);
+        if (timeRemaining + 5 < duration && dialog.length)
+            dialog.dialog("close");
+        stopTimer(id, timeRemaining, element, nextPage, message, finalMessage);
     }, 1000);
 }
 
-function stopTimer(id, timeRemaining, element, isIndex, userCode) {
+function stopTimer(id, timeRemaining, element, url, text, dialogText) {
     if (timeRemaining < 0) {
         clearInterval(id);
         startGame = true;
-        if (isIndex)
-            window.location.replace(playUrl + userCode);
-        else
-            element.html("First to 5 points wins!");
+        if (url != null) {
+            user = '';
+            window.location.replace(url);
+        }
+        else if (dialogText != null)
+            element.html(dialogText);
     }
     else
-        element.html(element.html().substring(0, element.html().length-1) + " " + parseInt(timeRemaining,10));
+        element.html(text + parseInt(timeRemaining,10));
+}
+
+function setUrl(url) {
+    nextPage = url;
+}
+
+function setText(text) {
+    message = text;
+}
+
+function setDialogText(dialogText) {
+    finalMessage = dialogText
 }

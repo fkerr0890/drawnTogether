@@ -1,4 +1,5 @@
 <!doctype html>
+<!--suppress ALL -->
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -31,29 +32,18 @@
                 const drawer = "{{ drawer }}";
                 if (performanceEntries[performanceEntries.length-1].type !== "reload") {
                     let countdownText = $('.countdown_text');
-                    countdownText.html("Round starting in ");
-                    startTimer(5, countdownText, false, null);
+                    countdownText.html();
+                    startTimer(15, countdownText, null, "Round starting in ", "First to 5 points wins!");
                     setup(drawer);
                 }
                 else if (drawer === "False") {
                     startGame = true;
                     setup(drawer);
                 }
-                let correct_team = "{{ correct_team }}";
-                if (correct_team !== '') {
-                    let str;
-                    if (correct_team.substring(1,correct_team.length) === 'give_up')
-                        str = " gave up";
-                    else
-                        str = " guessed it";
-                    createDialog("Team " + correct_team.substring(0,1) + str, "Scores:/Team 1- " + {{ team1_score }}
-                        +"/Team 2- " + {{ team2_score }}, false);
-                }
                 // Share the information of the canvas across rooms, end the round and end the game
-                let array = [];
                 socket.on('message', (msg) => {
                     if (msg !== 'startGameMessage') {
-                        if (msg !== 'game_over' && (typeof msg === "string" && msg.substring(0,msg.length-1)) !== 'reset' && msg !== 'force_reset') {
+                        if ((typeof msg === "string" && msg.substring(0,msg.length-1)) !== 'reset' && msg !== 'force_reset') {
                             if (msg.username !== undefined && msg.team !== undefined) {
                                 if (Math.floor(msg.team / 2) === Math.floor(({{ team }}) / 2) && "{{ username }}" !== msg.username) {
                                     let add = true;
@@ -72,39 +62,32 @@
                                     }
                                 }
                             } else if (msg.color === undefined || msg.lineWidth === undefined) {
-                                startGame = true;
-                                timeRemaining = -4;
-                                $('.countdown_text').html("First to 5 points wins!");
-                                $('.dialog').dialog("close");
-                                let data = msg.data;
-                                for (let x = 0; x < data.length; x++) {
-                                    if (data[x] < 0) {
-                                        for (let i = 0; i < data[x] * -1; i++) {
-                                            array.push(0);
-                                        }
-                                    } else
-                                        array.push(data[x]);
+                                if (!transitioning) {
+                                    startGame = true;
+                                    timeRemaining = -4;
+                                    $('.countdown_text').html("First to 5 points wins!");
                                 }
-                                if (array.length !== 0)
-                                    ctx.putImageData(new ImageData(Uint8ClampedArray.from(array), w), 0, 0);
+                                console.log("Should be receiving winning canvas")
+                                restoreCanvas(msg.data);
                             } else {
                                 x = msg.color;
                                 y = msg.lineWidth;
+                                if (!transitioning && timeRemaining > 0) {
+                                    startGame = true;
+                                    setDialogText("First to 5 points wins!");
+                                    timeRemaining = -4;
+                                }
                                 draw(msg.x1, msg.y1, msg.x2, msg.y2, true);
                             }
                         } else {
                             transitioning = true;
-                            if (msg === 'game_over') {
-                                window.location.replace(thisUrl);
-                            } else {
-                                socket.disconnect()
-                                let dialogText;
-                                if (msg === 'force_reset')
-                                    dialogText = "There are not enough players remaining to continue";
-                                else
-                                    dialogText = "Team "+msg.substring(msg.length-1)+" wins!";
-                                createDialog("Message",dialogText, true);
-                            }
+                            socket.disconnect()
+                            let dialogText;
+                            if (msg === 'force_reset')
+                                dialogText = "There are not enough players remaining to continue";
+                            else
+                                dialogText = "Team "+msg.substring(msg.length-1)+" wins!";
+                            createDialog("Message",dialogText, true);
                         }
                     }
                 });
@@ -113,11 +96,41 @@
                     socket.emit('load_canvas', {'from':"{{ username }}",'team':"{{team}}"});
                 }
 
+                socket.on('game_over', (msg) => {
+                    transitioning = true;
+                    const myTeam = {{ team }};
+                    if ("{{ drawer }}" === "True" && myTeam % 2 == 0)
+                        socket.emit("send_current_countdown", 15)
+                    if (msg.winning_drawer === "{{ username }}" || (msg.winning_drawer === undefined && "{{ drawer }}" === "True" && myTeam !== msg.team)) {
+                        const result = sendWinningCanvas();
+                        result.finally(socket.emit('leave_room', myTeam.toString()))
+                    }
+                    let team = (msg.team % 2 + 1).toString()
+                    let str = msg.user + " from Team " + team;
+                    if (msg.word === 'give_up') {
+                        team = Number(!Boolean(Number(team)-1))+1;
+                        str += " gave up";
+                    }
+                    else
+                        str += " guessed it (" + msg.word + ")";
+                    $('#number'+team).html((parseInt($('#number'+team).html(),10)+1).toString());
+                    createDialog("Round Complete!", str+"//"+"Scores:/Team 1- " + $('#number1').html()
+                        +"/Team 2- " + $('#number2').html(), false);
+                    let countdownText = $('.countdown_text');
+                    startTimer(15, countdownText, thisUrl, "Next round in ", null);
+                });
+
                 socket.on('load_canvas', (msg) => {
                     if (drawer === "True" && startGame) {
-                        const data = ctx.getImageData(0,0, w, h).data;
-                        sendCanvas(data,msg);
+                        sendCanvas(msg);
                     }
+                });
+
+                socket.on('winning_canvas', (msg) => {
+                    ctx.clearRect(0, 0, w, h);
+                    restoreCanvas(msg.data)
+                    $('#role').html(msg.user + "'s winning drawing:");
+                    socket.emit('leave_room', "{{ team }}")
                 });
 
                 socket.on('add_word', (msg) => {
@@ -181,11 +194,26 @@
                 }
             }
 
+            function restoreCanvas(data) {
+                let array = [];
+                for (let x = 0; x < data.length; x++) {
+                    if (data[x] < 0) {
+                        for (let i = 0; i < data[x] * -1; i++) {
+                            array.push(0);
+                        }
+                    } else
+                        array.push(data[x]);
+                }
+                if (array.length !== 0)
+                    ctx.putImageData(new ImageData(Uint8ClampedArray.from(array), w), 0, 0);
+            }
+
             function createDialog(title, text, toIndex) {
                 const parts = text.split("/").map(x => x+"<br>").join('');
                 return $("<div class='dialog' title='" + title + "'><p>" + parts + "</p></div>").dialog({
                     dialogClass: "no-close",
                     resizable: false,
+                    width: 'auto',
                     modal: true,
                     buttons: [
                         {
@@ -200,11 +228,22 @@
                 });
             }
 
-            async function sendCanvas(data,to_user) {
+            async function sendWinningCanvas() {
+                const msg = await compressCanvasData();
+                return socket.emit('send_winning_canvas', {'data': msg, 'user': {{ username }}});
+            }
+
+            async function sendCanvas(to_user) {
+                const msg = await compressCanvasData();
+                return socket.emit('send_canvas', {'data': msg, 'room': to_user});
+            }
+
+            function compressCanvasData() {
+                const data = ctx.getImageData(0,0, w, h).data;
                 let zeroCount = 0;
                 let add = true;
                 let msg = [];
-                let promise = new Promise(resolve =>  {
+                return new Promise((resolve, reject) =>  {
                     for (let i = 0; i < data.length; i++) {
                         let entry;
                         if (data[i] === 0) {
@@ -226,10 +265,8 @@
                     }
                     if (zeroCount !== 0)
                         msg.push(zeroCount);
-                    resolve();
+                    resolve(msg);
                 });
-                await promise;
-                return socket.emit('send_canvas', {'data': msg, 'room': to_user});
             }
 
             /* Draws a line from previous the x,y coordinates to the current x,y coordinates
@@ -319,7 +356,7 @@
                 <div id = "team1">
                     Team 1
                     <div id="score1">Score:
-                        <div id="numberone">{{ team1_score }}</div>
+                        <div id="number1">{{ team1_score }}</div>
                     </div>
                     <div class="team">
                         <ul id="team1_list">
@@ -332,7 +369,7 @@
                 <div id = team2>
                     Team 2
                     <div id="score2">Score:
-                        <div id="numbertwo">{{ team2_score }}</div>
+                        <div id="number2">{{ team2_score }}</div>
                     </div>
                     <div class="team">
                         <ul id="team2_list">
@@ -354,10 +391,6 @@
                         socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
                     guess.val('');
                 }
-
-                /*$(document).ready(function () {
-                    startTimer(5, $('.countdown_text'));
-                });*/
 
                 let input = document.getElementById("answer");
                 if (input != null) {

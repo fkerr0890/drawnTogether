@@ -49,7 +49,7 @@ class Data(db.Model):
 # General Socket.io function to handle unnamed incoming messages
 @socketio.on('message')
 def handleMessage(msg):
-    emit('message', msg, room=msg.get('room'), include_self=False)
+    emit('message', msg, room=msg['room'], include_self=False)
 
 
 @socketio.on('load_canvas')
@@ -71,6 +71,24 @@ def handleSendCanvas(msg):
     room = User.query.get(msg.get('room')).id
     del msg['room']
     emit('message', msg, room=room, include_self=False)
+
+@socketio.on('send_winning_canvas')
+def handleSendWinningCanvas(msg):
+    user = User.query.get(msg['user'])
+    base_team = math.floor(user.team / 2) * 2
+    print("base team: " + str(base_team) + ", team: " + str(user.team))
+    emit('winning_canvas', msg, room=str(base_team), include_self=False)
+    emit('winning_canvas', msg, room=str(base_team+1), include_self=False)
+
+@socketio.on('send_current_countdown')
+def handleSendCurrentCountdown(msg):
+    print("time remaining: " + str(msg))
+    base_team = Data.query.get('incomplete').value
+    sender_base_team = str(math.floor(User.query.filter_by(id=request.sid).first().team / 2) * 2)
+    if base_team == sender_base_team:
+        print("Sending current countdown")
+        emit('current_countdown', msg, broadcast=True)
+
 
 
 # App endpoint to expose the playing room based on users
@@ -95,10 +113,6 @@ def play(user_code):
         team2_score = Data.query.get('team' + str(base_team + 1) + '_score')
         team1_score = 0 if team1_score is None else team1_score
         team2_score = 0 if team2_score is None else team2_score
-        correct_team = ''
-        print("Correct team: " + str(Data.query.get('correct_team'+str(base_team))))
-        if (x := Data.query.get('correct_team'+str(base_team))) is not None:
-            correct_team = x.value
         # Getting a random noun from the local work bank and copying it to the database
         try:
             word = get_random_noun()
@@ -119,7 +133,6 @@ def play(user_code):
                                word_to_guess=word,
                                team1_score=team1_score,
                                team2_score=team2_score,
-                               correct_team=correct_team,
                                rejoin=rejoin)
 
 
@@ -225,31 +238,29 @@ def get_random_noun():
 @socketio.on('guess')
 def validate_guess(msg):
     base_team = math.floor(msg['team'] / 2) * 2
-    if msg['guess'] != 'give_up':
+    user = User.query.filter_by(id=request.sid).first()
+    correct_team = None
+    # Query the database for the current word to guess
+    existing_word = Data.query.get('baseTeam' + str(base_team) + '_word').value
+    # If the team guess is equal to the word in the database
+    if msg['guess'].casefold() == existing_word.casefold():
         correct_team = msg['team']
-        # Query the database for the current word to guess
-        existing_word = Data.query.get('baseTeam' + str(base_team) + '_word').value
-        # If the team guess is equal to the word in the database
-        if msg['guess'].casefold() == existing_word.casefold():
-            # Reset the word and update score
-            reset(correct_team)
-            updateScore(correct_team, base_team)
-        else:
-            emit('add_word', msg['guess'], room=str(msg['team']))
-    else:
+        drawer = User.query.filter((User.team == correct_team) & (User.drawer == True)).first().username
+        emit('game_over', {'user': user.username, 'team': correct_team, 'word': existing_word, 'winning_drawer': drawer}, room=str(base_team))
+        emit('game_over', {'user': user.username, 'team': correct_team, 'word': existing_word, 'winning_drawer': drawer}, room=str(base_team+1))
+    elif msg['guess'] == 'give_up':
         if msg['team'] == base_team:
             correct_team = base_team + 1
         else:
             correct_team = base_team
+        emit('game_over', {'user': user.username, 'team': msg['team'], 'word': 'give_up'}, room=str(base_team))
+        emit('game_over', {'user': user.username, 'team': msg['team'], 'word': 'give_up'}, room=str(base_team + 1))
+    else:
+        emit('add_word', msg['guess'], room=str(msg['team']))
+    if correct_team is not None:
+        # Reset the word and update score
         reset(correct_team)
         updateScore(correct_team, base_team)
-        correct_team = msg['team']
-    existing_correct_team = Data.query.get("correct_team" + str(base_team))
-    if existing_correct_team is None:
-        db.session.add(Data(type="correct_team" + str(base_team), value=str(correct_team % 2 + 1)+msg['guess']))
-    else:
-        existing_correct_team.value = str(correct_team % 2 + 1)+msg['guess']
-    db.session.commit()
 
 
 # Function to update score based on the team
@@ -270,9 +281,6 @@ def updateScore(team, base_team):
         team = str(team % 2 + 1)
         emit('message', 'reset' + team, room=str(base_team))
         emit('message', 'reset' + team, room=str(base_team + 1))
-    else:
-        emit('message', 'game_over', room=str(base_team))
-        emit('message', 'game_over', room=str(base_team + 1))
 
 
 # Function to reset the word to guess in the database
@@ -284,26 +292,24 @@ def reset(team):
     team2 = User.query.filter((User.team == base_team+1) & (User.cached == False)).all()
     drawer1_index = random.randint(0, len(team1)-1)
     drawer2_index = random.randint(0, len(team2)-1)
-    for i in range(0, len(team1)):
-        if team1[i].drawer:
-            team1[i].drawer = False
-        if i == drawer1_index:
-            team1[i].drawer = True
-    for i in range(0, len(team2)):
-        if team2[i].drawer:
-            team2[i].drawer = False
-        if i == drawer2_index:
-            team2[i].drawer = True
+    find_new_drawer(team1, drawer1_index)
+    find_new_drawer(team2, drawer2_index)
     db.session.commit()
 
+def find_new_drawer(team, drawer_index):
+    for i in range(0, len(team)):
+        if team[i].drawer:
+            team[i].drawer = False
+            if i == drawer_index:
+                drawer_index = random.randint(i+1, len(team) - 1)
+        elif i == drawer_index:
+            team[i].drawer = True
 
 def delete_users(base_team):
     for user in User.query.filter((User.team == base_team) | (User.team == base_team + 1)).all():
         db.session.delete(user)
         emit('delete_user', user.username, broadcast=True)
-    items_to_delete = [Data.query.get('team' + str(base_team) + '_score'),
-                       Data.query.get('team' + str(base_team + 1) + '_score'),
-                       Data.query.get('correct_team' + str(base_team))]
+    items_to_delete = [Data.query.get('team' + str(base_team) + '_score'), Data.query.get('team' + str(base_team + 1) + '_score')]
     for item in items_to_delete:
         if item is not None:
             db.session.delete(item)
@@ -329,6 +335,12 @@ def delete_user(msg):
         emit('message', 'force_reset', room=str(base_team + 1))
         close_room(str(base_team))
         close_room(str(base_team + 1))
+
+
+@socketio.on('leave_room')
+def exit_room(msg):
+    print("Leave room user: " + User.query.filter_by(id=request.sid).first().username)
+    leave_room(msg)
 
 
 if __name__ == '__main__':

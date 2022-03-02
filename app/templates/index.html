@@ -37,10 +37,10 @@
         <script>
             const indexUrl = "{{ url_for('lobby') }}";
             let playUrl;
+            let user = '';
             // Connect to the websocket when the webpage loads
             $(document).ready(function() {
                 let lobby_socket = io.connect(indexUrl);
-                let user = '';
                 let userCode = (Math.floor(Math.random() * 99999999) + 1).toString();
                 let username = $('#username');
                 let countdownText = $('.countdown_text');
@@ -57,14 +57,19 @@
                     //When there are more than 4 users, redirect all users to the play room
                     if (msg === "startGameMessage"){
                         if (user !== '') {
-                            user = '';
+                            let text;
                             if ($("li").length > 4)
-                                countdownText.html("Joining existing game in ");
+                                text = "Joining existing game in ";
                             else
-                                countdownText.html("Entering game in ");
-                            lobby_socket.disconnect();
+                                text = "Entering game in ";
                             playUrl = "{{ url_for('play', user_code=userCode) }}";
-                            startTimer(3, countdownText, true, userCode);
+                            if (timeRemaining === undefined || timeRemaining <= 0) {
+                                startTimer(3, countdownText, playUrl + userCode, text, null);
+                            }
+                            else {
+                                setUrl(playUrl+userCode);
+                                setText(text);
+                            }
                         }
 
                         //Check if user already exists
@@ -103,8 +108,19 @@
                        if ($(this).html() === msg)
                            $(this).remove();
                     });
-                    if ($('li').length < 4)
-                        $('.countdown_text').html("4 players required to start");
+                    if ($('li').length < 4) {
+                        if (timeRemaining > 0) {
+                            setUrl(null);
+                            setDialogText("4 players required to start");
+                            timeRemaining = -4;
+                        }
+                    }
+                });
+
+                lobby_socket.on('current_countdown', (msg) => {
+                    console.log("Time remaining: " + msg)
+                    let countdownText = $('.countdown_text');
+                    startTimer(msg, countdownText, null, "Enter your name to join existing game in ", "Enter your name to join existing game");
                 });
 
                 // Function to retrieve user input and send it through the socket
