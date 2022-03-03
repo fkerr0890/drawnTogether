@@ -75,19 +75,21 @@ def handleSendCanvas(msg):
 @socketio.on('send_winning_canvas')
 def handleSendWinningCanvas(msg):
     user = User.query.get(msg['user'])
-    base_team = math.floor(user.team / 2) * 2
-    print("base team: " + str(base_team) + ", team: " + str(user.team))
-    emit('winning_canvas', msg, room=str(base_team), include_self=False)
-    emit('winning_canvas', msg, room=str(base_team+1), include_self=False)
+    if user is not None:
+        base_team = math.floor(user.team / 2) * 2
+        print("base team: " + str(base_team) + ", team: " + str(user.team))
+        emit('winning_canvas', msg, room=str(base_team), include_self=False)
+        emit('winning_canvas', msg, room=str(base_team+1), include_self=False)
 
 @socketio.on('send_current_countdown')
 def handleSendCurrentCountdown(msg):
     print("time remaining: " + str(msg))
-    base_team = Data.query.get('incomplete').value
-    sender_base_team = str(math.floor(User.query.filter_by(id=request.sid).first().team / 2) * 2)
-    if base_team == sender_base_team:
-        print("Sending current countdown")
-        emit('current_countdown', msg, broadcast=True)
+    base_team = Data.query.get('incomplete')
+    sender = User.query.filter_by(id=request.sid).first()
+    if base_team is not None and sender is not None:
+        if base_team.value == str(math.floor(sender.team / 2) * 2):
+            print("Sending current countdown")
+            emit('current_countdown', msg, broadcast=True)
 
 
 
@@ -147,7 +149,6 @@ def lobby():
     if base_team is not None:
         base_team = int(base_team.value)
         users = User.query.filter(((User.team == base_team) | (User.team == base_team + 1)) & (User.cached == False)).all()
-        # users = User.query.filter(((User.team == base_team) | (User.team == base_team + 1))).all()
     else:
         users = []
     return render_template("index.html", users=users)
@@ -301,7 +302,11 @@ def find_new_drawer(team, drawer_index):
         if team[i].drawer:
             team[i].drawer = False
             if i == drawer_index:
-                drawer_index = random.randint(i+1, len(team) - 1)
+                if i == len(team)-1:
+                    drawer_index = random.randint(0, len(team) - 2)
+                    team[drawer_index].drawer = True
+                else:
+                    drawer_index = random.randint(i+1, len(team) - 1)
         elif i == drawer_index:
             team[i].drawer = True
 
@@ -320,27 +325,23 @@ def delete_users(base_team):
 def delete_user(msg):
     print("Username to be deleted:" + msg['username'])
     user = User.query.get(msg['username'])
-    leave_room(str(user.team))
-    if msg['permanent'] == 'True':
-        db.session.delete(user)
-    else:
-        user.cached = True
-        print(msg['username'] + " cached " + str(user.cached))
-    db.session.commit()
-    base_team = math.floor(user.team / 2) * 2
-    emit('delete_user', msg['username'], broadcast=True)
-    if user.drawer and user.inGame:
-        delete_users(base_team)
-        emit('message', 'force_reset', room=str(base_team))
-        emit('message', 'force_reset', room=str(base_team + 1))
-        close_room(str(base_team))
-        close_room(str(base_team + 1))
+    if user is not None:
+        leave_room(str(user.team))
+        if msg['permanent'] == 'True':
+            db.session.delete(user)
+        else:
+            user.cached = True
+            print(msg['username'] + " cached " + str(user.cached))
+        db.session.commit()
+        base_team = math.floor(user.team / 2) * 2
+        emit('delete_user', msg['username'], broadcast=True)
+        if user.drawer and user.inGame:
+            delete_users(base_team)
+            emit('message', 'force_reset', room=str(base_team))
+            emit('message', 'force_reset', room=str(base_team + 1))
+            close_room(str(base_team))
+            close_room(str(base_team + 1))
 
-
-@socketio.on('leave_room')
-def exit_room(msg):
-    print("Leave room user: " + User.query.filter_by(id=request.sid).first().username)
-    leave_room(msg)
 
 
 if __name__ == '__main__':

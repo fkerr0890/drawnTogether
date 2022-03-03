@@ -24,6 +24,7 @@ function stopTimer(id, timeRemaining, element, url, text, dialogText) {
         startGame = true;
         if (url != null) {
             user = '';
+            loading = true;
             window.location.replace(url);
         }
         else if (dialogText != null)

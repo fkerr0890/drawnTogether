@@ -23,6 +23,7 @@
 
             let startGame = false;
             let transitioning = false;
+            let loading = false;
             const indexUrl = "{{ url_for('lobby') }}";
             const thisUrl = "{{ url_for('play', user_code=user_code) }}";
             // Connect to socket and send users to specific rooms when the page loads
@@ -59,6 +60,9 @@
                                         } else {
                                             document.getElementById('team2_list').appendChild(li);
                                         }
+                                        const myTeam = {{ team }};
+                                        if ("{{ drawer }}" === "True" && myTeam % 2 == 0 && transitioning)
+                                            socket.emit("send_current_countdown", timeRemaining)
                                     }
                                 }
                             } else if (msg.color === undefined || msg.lineWidth === undefined) {
@@ -80,8 +84,7 @@
                                 draw(msg.x1, msg.y1, msg.x2, msg.y2, true);
                             }
                         } else {
-                            transitioning = true;
-                            socket.disconnect()
+                            loading = true;
                             let dialogText;
                             if (msg === 'force_reset')
                                 dialogText = "There are not enough players remaining to continue";
@@ -92,7 +95,7 @@
                     }
                 });
 
-                if (drawer === "False") {
+                if (drawer === "False" && !transitioning) {
                     socket.emit('load_canvas', {'from':"{{ username }}",'team':"{{team}}"});
                 }
 
@@ -102,8 +105,7 @@
                     if ("{{ drawer }}" === "True" && myTeam % 2 == 0)
                         socket.emit("send_current_countdown", 15)
                     if (msg.winning_drawer === "{{ username }}" || (msg.winning_drawer === undefined && "{{ drawer }}" === "True" && myTeam !== msg.team)) {
-                        const result = sendWinningCanvas();
-                        result.finally(socket.emit('leave_room', myTeam.toString()))
+                        sendWinningCanvas();
                     }
                     let team = (msg.team % 2 + 1).toString()
                     let str = msg.user + " from Team " + team;
@@ -121,7 +123,7 @@
                 });
 
                 socket.on('load_canvas', (msg) => {
-                    if (drawer === "True" && startGame) {
+                    if (drawer === "True" && startGame && !transitioning) {
                         sendCanvas(msg);
                     }
                 });
@@ -130,7 +132,6 @@
                     ctx.clearRect(0, 0, w, h);
                     restoreCanvas(msg.data)
                     $('#role').html(msg.user + "'s winning drawing:");
-                    socket.emit('leave_room', "{{ team }}")
                 });
 
                 socket.on('add_word', (msg) => {
@@ -150,11 +151,15 @@
                 });
 
                 const beforeUnloadListener = () => {
-                    if (!transitioning) {
-                        if ("{{ drawer }}" === "True") {
+                    if (!loading) {
+                        if (transitioning) {
+                            socket.emit('delete_user', {'username': '{{ username }}', 'permanent': 'True'});
+                        }
+                        else if ("{{ drawer }}" === "True") {
                             socket.emit('delete_user', {'username': '{{ username }}', 'permanent': 'True'});
                             createDialog("Alert", "You have been removed from the game", false);
-                        } else
+                        }
+                        else
                             socket.emit('delete_user', {'username': '{{ username }}', 'permanent': 'False'});
                     }
                 };
@@ -279,7 +284,7 @@
                 ctx.lineWidth = y;
                 ctx.stroke();
                 ctx.closePath();
-                if (!received) {
+                if (!received && !transitioning) {
                     const json_data = {x1: x1, y1: y1, x2: x2, y2: y2, color: x, lineWidth: y, room: "{{team}}" };
                     socket.emit('message',json_data);
                 }
@@ -387,7 +392,7 @@
                 // Send user guess through Socket.io
                 function send_guess(){
                     let guess = $('#answer');
-                    if (startGame && guess.val().length !== 0)
+                    if (startGame && guess.val().length !== 0 && !transitioning)
                         socket.emit('guess', {'guess': guess.val(), 'team': {{ team }}});
                     guess.val('');
                 }

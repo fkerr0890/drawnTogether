@@ -27,7 +27,7 @@
             <button id="joinTeam">Join</button>
             <h1 id="index_countdown_text" class="countdown_text">
                 {% if users|length >= 4 %}
-                    Enter your name to join existing game
+                    Enter name to join existing game
                 {% else %}
                     4 players required to start
                 {% endif %}
@@ -90,7 +90,7 @@
                             document.getElementById('userList2').appendChild(li);
                         }
                         if ($('li').length >= 4)
-                            $('.countdown_text').html('Enter your name to join existing game');
+                            $('.countdown_text').html('Enter name to join existing game');
                     }
                 });
 
@@ -118,9 +118,15 @@
                 });
 
                 lobby_socket.on('current_countdown', (msg) => {
-                    console.log("Time remaining: " + msg)
-                    let countdownText = $('.countdown_text');
-                    startTimer(msg, countdownText, null, "Enter your name to join existing game in ", "Enter your name to join existing game");
+                    console.log("Received current countdown");
+                    if (timeRemaining <= 0 || timeRemaining === undefined) {
+                        console.log("starting timer");
+                        let countdownText = $('.countdown_text');
+                        startTimer(msg, countdownText, null, "Enter name to join existing game in ", "Enter name to join existing game");
+                    }
+                    else
+                        console.log("Time remaining" + timeRemaining);
+                        timeRemaining = msg;
                 });
 
                 // Function to retrieve user input and send it through the socket
