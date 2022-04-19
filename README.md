@@ -2,7 +2,11 @@
 This repository contains the source code for the DrawnTogether game as the final project for COMP446 at Macalester College.
 
 Drawn Together is a team-based draw-and-guessing game where two teams compete to see who will win in 5 rounds by drawing a description and guessing as fast as they can. 
-Each team has one drawer and at least one guesser. Drawers on both teams get the same word to draw and the guessers have to guess it as fast as possible. The team that guesses first gets a point. The game ends after 5 rounds. 
+Each team has one drawer and at least one guesser. Drawers on both teams get the same word to draw and the guessers have to guess it as fast as possible. The team that guesses first gets a point. The game ends after 5 rounds.
+
+## Project now hosted on Heroku:
+
+Here's the link: https://drawntogether2.herokuapp.com/
 
 ## How to run this project:
 
